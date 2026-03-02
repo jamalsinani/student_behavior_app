@@ -11,11 +11,11 @@ class TeacherTimetableService {
 }) async {
 
   final uri = Uri.parse(
-    "$baseUrl/teacher/timetable"
+    "$baseUrl/teacher/get-timetable"
   ).replace(queryParameters: {
     "teacher_phone": teacherPhone,
     "school_id": schoolId.toString(),
-    "day_name": dayNumber.toString(),
+    "day_number": dayNumber.toString(),
   });
 
   final response = await http.get(uri);
