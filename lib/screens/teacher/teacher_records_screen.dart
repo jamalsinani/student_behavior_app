@@ -248,6 +248,7 @@ class _TeacherRecordsScreenState
         return _myRecordCard(
           title: item['title'].toString(),
           subtitle: item['description'].toString(),
+          date: item['date']?.toString() ?? "",
           color: color,
         );
       },
@@ -257,6 +258,7 @@ class _TeacherRecordsScreenState
   Widget _myRecordCard({
     required String title,
     required String subtitle,
+     required String date,
     required Color color,
   }) {
     return Container(
@@ -292,6 +294,16 @@ class _TeacherRecordsScreenState
               color: Colors.white70,
             ),
           ),
+           const SizedBox(height: 12),
+
+        Text(
+          date,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         ],
       ),
     );

@@ -704,12 +704,13 @@ if (index <
                 size: 14),
             const SizedBox(width: 6),
             Text(
-              "${getDayName(int.tryParse(item['original_day'].toString()))} - الحصة ${item['original_period']}",
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-              ),
-            ),
+  "${getDayName(int.tryParse(item['original_day'].toString()))} - الحصة ${item['original_period']} "
+  "// ${getDayName(int.tryParse(item['target_day'].toString()))} - الحصة ${item['target_period']}",
+  style: const TextStyle(
+    color: Colors.white70,
+    fontSize: 13,
+  ),
+),
           ],
         ),
       ],
