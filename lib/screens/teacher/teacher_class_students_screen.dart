@@ -31,7 +31,7 @@ class _TeacherClassStudentsScreenState
   @override
   void initState() {
     super.initState();
-
+     print("🔥🔥 SCREEN OPENED 🔥🔥");
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -49,11 +49,13 @@ class _TeacherClassStudentsScreenState
       final schoolId = schoolIdRaw is int
           ? schoolIdRaw
           : int.tryParse(schoolIdRaw?.toString() ?? "1") ?? 1;
-
+        print("SECTION: ${widget.classData['section']}");
+print("GRADE: ${widget.classData['grade']}");
+print("SCHOOL ID: $schoolId");
       final data =
       await TeacherClassStudentsService.getClassStudents(
-        section: widget.classData['grade'].toString(),
-        grade: widget.classData['section'].toString(),
+        section: widget.classData['section'].toString(),
+        grade: widget.classData['grade'].toString(),
         schoolId: schoolId,
       );
 
