@@ -37,7 +37,7 @@ dependencies:
   http: ^1.2.1
   shared_preferences: ^2.2.2
   quickalert: ^1.1.0
-  
+  another_flushbar: ^1.12.30
 
 
 

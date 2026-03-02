@@ -9,6 +9,7 @@ import 'teacher_profile_screen.dart';
 import 'teacher_records_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:another_flushbar/flushbar.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -70,22 +71,79 @@ class _TeacherHomeScreenState
         swapRequests.removeAt(index);
       });
 
-      QuickAlert.show(
-        context: context,
-        type: status == "approved"
-            ? QuickAlertType.success
-            : QuickAlertType.error,
-        title: status == "approved"
-            ? "تمت الموافقة"
-            : "تم الرفض",
-        text: data["message"] ?? "",
-      );
+      /// 🔔 رسالة عصرية حديثة
+      Flushbar(
+        margin: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(20),
+        duration: const Duration(seconds: 3),
+        flushbarPosition: FlushbarPosition.TOP,
+        backgroundGradient: LinearGradient(
+          colors: status == "approved"
+              ? [Colors.green.shade600, Colors.green.shade400]
+              : [Colors.red.shade600, Colors.red.shade400],
+        ),
+        icon: Icon(
+          status == "approved"
+              ? Icons.check_circle
+              : Icons.cancel,
+          color: Colors.white,
+          size: 28,
+        ),
+        titleText: Text(
+          status == "approved"
+              ? "تم اعتماد التبديل"
+              : "تم رفض الطلب",
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        messageText: Text(
+          data["message"] ?? "",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+      ).show(context);
+
     } else {
-      print("API ERROR: ${data["message"]}");
+
+      Flushbar(
+        margin: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(20),
+        duration: const Duration(seconds: 3),
+        flushbarPosition: FlushbarPosition.TOP,
+        backgroundColor: Colors.orange.shade600,
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          color: Colors.white,
+        ),
+        messageText: Text(
+          data["message"] ?? "حدث خطأ غير متوقع",
+          style: const TextStyle(color: Colors.white),
+        ),
+      ).show(context);
     }
 
   } catch (e) {
-    print("SWAP UPDATE ERROR: $e");
+
+    Flushbar(
+      margin: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(20),
+      duration: const Duration(seconds: 3),
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: Colors.red.shade700,
+      icon: const Icon(
+        Icons.error_outline,
+        color: Colors.white,
+      ),
+      messageText: const Text(
+        "تعذر الاتصال بالخادم",
+        style: TextStyle(color: Colors.white),
+      ),
+    ).show(context);
   }
 }
 
@@ -383,7 +441,8 @@ class _TeacherHomeScreenState
           itemBuilder: (context, index) {
 
                                   /// 1️⃣ طلبات التبديل
-                                  if (index < swapRequests.length) {
+                                 /// 1️⃣ طلبات التبديل
+if (index < swapRequests.length) {
 
   final item = swapRequests[index];
 
@@ -408,30 +467,28 @@ class _TeacherHomeScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// العنوان
             Expanded(
               child: Text(
                 "طلب تبديل حصة - مادة ${item['subject_name'] ?? ''}",
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 13, // أصغر قليلاً
+                  fontSize: 13,
                 ),
               ),
             ),
 
-            /// أزرار الموافقة والرفض (أعلى يمين)
             Row(
               children: [
 
                 InkWell(
                   onTap: () {
-  updateSwapStatus(
-  int.parse(item['id'].toString()),
-  "approved",
-  index,
-);
-},
+                    updateSwapStatus(
+                      int.parse(item['id'].toString()),
+                      "approved",
+                      index,
+                    );
+                  },
                   borderRadius: BorderRadius.circular(50),
                   child: Container(
                     width: 34,
@@ -455,12 +512,12 @@ class _TeacherHomeScreenState
 
                 InkWell(
                   onTap: () {
-  updateSwapStatus(
-  int.parse(item['id'].toString()),
-  "rejected",
-  index,
-);
-},
+                    updateSwapStatus(
+                      int.parse(item['id'].toString()),
+                      "rejected",
+                      index,
+                    );
+                  },
                   borderRadius: BorderRadius.circular(50),
                   child: Container(
                     width: 34,
@@ -489,7 +546,9 @@ class _TeacherHomeScreenState
         /// الصف والشعبة
         Row(
           children: [
-            const Icon(Icons.school, color: Colors.white70, size: 14),
+            const Icon(Icons.school,
+                color: Colors.white70,
+                size: 14),
             const SizedBox(width: 6),
             Text(
               "الصف ${item['grade']} - شعبة ${item['section']}",
@@ -506,7 +565,9 @@ class _TeacherHomeScreenState
         /// الحصة الأصلية
         Row(
           children: [
-            const Icon(Icons.access_time, color: Colors.white70, size: 14),
+            const Icon(Icons.access_time,
+                color: Colors.white70,
+                size: 14),
             const SizedBox(width: 6),
             Text(
               "الأصلية: ${getDayName(int.tryParse(item['original_day'].toString()))} - حصة ${item['original_period']}",
@@ -523,7 +584,9 @@ class _TeacherHomeScreenState
         /// الحصة المطلوبة
         Row(
           children: [
-            const Icon(Icons.swap_horiz, color: Colors.white70, size: 14),
+            const Icon(Icons.swap_horiz,
+                color: Colors.white70,
+                size: 14),
             const SizedBox(width: 6),
             Text(
               "المطلوبة: ${getDayName(int.tryParse(item['target_day'].toString()))} - حصة ${item['target_period']}",
@@ -538,6 +601,7 @@ class _TeacherHomeScreenState
     ),
   );
 }
+
 
 // =========================================================
 // 2️⃣ ردود طلباتي (للمعلم الأصلي)
@@ -988,6 +1052,29 @@ if (index <
       ),
     );
   }
+  
+  Widget _infoRow({
+  required IconData icon,
+  required String text,
+}) {
+  return Row(
+    children: [
+      Icon(icon,
+          size: 16,
+          color: Colors.grey.shade600),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Colors.black87,
+          ),
+        ),
+      ),
+    ],
+  );
+}
 
   void _confirmLogout() {
     Navigator.pushReplacement(
