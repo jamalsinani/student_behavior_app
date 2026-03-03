@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../services/teacher_timetable_service.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 class TeacherTimetableScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -737,35 +738,59 @@ Positioned(
 
             print("CALLING API NOW");
 
-            final success =
-                await TeacherTimetableService.sendSwapRequest(
-              schoolId: schoolId,
-              requesterPhone: requesterPhone,
-              requesterName: requesterName,
-              substitutePhone: selectedTeacher!,
-              substituteName: substitute['name'],
-              originalDay: dayNumber,
-              originalPeriod: periodNumber,
-              targetDay: selectedTargetDay!,
-              targetPeriod: selectedTargetPeriod!,
-              subjectName: subjectName,
-              section: section,
-              grade: grade,
-            );
+            final result =
+    await TeacherTimetableService.sendSwapRequest(
+  schoolId: schoolId,
+  requesterPhone: requesterPhone,
+  requesterName: requesterName,
+  substitutePhone: selectedTeacher!,
+  substituteName: substitute['name'],
+  originalDay: dayNumber,
+  originalPeriod: periodNumber,
+  targetDay: selectedTargetDay!,
+  targetPeriod: selectedTargetPeriod!,
+  subjectName: subjectName,
+  section: section,
+  grade: grade,
+);
 
-            print("API FINISHED");
+print("API FINISHED");
 
-            Navigator.pop(context);
+Navigator.pop(context);
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  success
-                      ? "تم إرسال طلب التبديل"
-                      : "فشل في الإرسال",
-                ),
-              ),
-            );
+Flushbar(
+  margin: const EdgeInsets.all(16),
+  borderRadius: BorderRadius.circular(20),
+  duration: const Duration(seconds: 3),
+  flushbarPosition: FlushbarPosition.TOP,
+  backgroundGradient: LinearGradient(
+    colors: result['status']
+        ? [Colors.green.shade600, Colors.green.shade400]
+        : [Colors.red.shade600, Colors.red.shade400],
+  ),
+  icon: Icon(
+    result['status']
+        ? Icons.check_circle
+        : Icons.error,
+    color: Colors.white,
+    size: 26,
+  ),
+  titleText: Text(
+    result['status'] ? "تم بنجاح" : "تنبيه",
+    style: const TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+      fontSize: 15,
+    ),
+  ),
+  messageText: Text(
+    result['message'],
+    style: const TextStyle(
+      color: Colors.white,
+      fontSize: 14,
+    ),
+  ),
+).show(context);
           },
     child: const Text("إرسال الطلب"), // 👈 هذا كان ناقص
   ),

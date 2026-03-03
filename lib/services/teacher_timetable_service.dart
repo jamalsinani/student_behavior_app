@@ -72,7 +72,7 @@ static Future<Map<String, dynamic>?> getTeacherPeriodInfo({
   return null;
 }
 
-static Future<bool> sendSwapRequest({
+static Future<Map<String, dynamic>> sendSwapRequest({
   required int schoolId,
   required String requesterPhone,
   required String requesterName,
@@ -110,10 +110,8 @@ static Future<bool> sendSwapRequest({
     }),
   );
 
-  print("SWAP STATUS: ${response.statusCode}");
-  print("SWAP BODY: ${response.body}");
-
-  return response.statusCode == 200;
+  final data = json.decode(response.body);
+  return data;
 }
 
 }

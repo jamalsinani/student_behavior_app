@@ -414,7 +414,7 @@ class _TeacherHomeScreenState
                       const SizedBox(height: 15),
 
                       SizedBox(
-  height: 170,
+  height: 145,
   child: (notes.isEmpty &&
           coverages.isEmpty &&
           swapRequests.isEmpty &&
