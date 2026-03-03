@@ -519,6 +519,8 @@ Positioned(
   selectedTargetDay = null;
   selectedTargetPeriod = null;
   selectedTargetPeriodInfo = null;
+  
+  List<int> availablePeriods = [];   
 
   showModalBottomSheet(
     context: context,
@@ -615,13 +617,35 @@ Positioned(
                         child: Text(arabicDays[index]),
                       );
                     }),
-                    onChanged: (value) {
-                      setModalState(() {
-                        selectedTargetDay = value;
-                        selectedTargetPeriod = null;
-                        selectedTargetPeriodInfo = null;
-                      });
-                    },
+                    onChanged: (value) async {
+  setModalState(() {
+    selectedTargetDay = value;
+    selectedTargetPeriod = null;
+    selectedTargetPeriodInfo = null;
+    availablePeriods = [];
+  });
+
+  if (selectedTeacher != null && value != null) {
+
+    final schoolId = int.tryParse(
+            widget.userData?['school_id'].toString() ?? "1") ??
+        1;
+
+    final data =
+        await TeacherTimetableService.getTimetable(
+      teacherPhone: selectedTeacher!,
+      schoolId: schoolId,
+      dayNumber: value,
+    );
+
+    setModalState(() {
+      availablePeriods =
+           data.map<int>((e) => int.parse(e['period_number'].toString())).toList();
+    });
+
+    print("AVAILABLE PERIODS: $availablePeriods");
+  }
+},
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                     ),
@@ -631,45 +655,45 @@ Positioned(
 
                   /// ================= الحصة البديلة =================
                   const Text("اختر الحصة البديلة"),
-                  const SizedBox(height: 8),
+const SizedBox(height: 8),
 
-                  DropdownButtonFormField<int>(
-                    value: selectedTargetPeriod,
-                    items: List.generate(8, (index) {
-                      return DropdownMenuItem(
-                        value: index + 1,
-                        child: Text("الحصة ${index + 1}"),
-                      );
-                    }),
-                    onChanged: (selectedTargetDay == null || selectedTeacher == null)
-                        ? null
-                        : (value) async {
+DropdownButtonFormField<int>(
+  value: selectedTargetPeriod,
+  items: availablePeriods.map<DropdownMenuItem<int>>((period) {
+    return DropdownMenuItem<int>(
+      value: period,
+      child: Text("الحصة $period"),
+    );
+  }).toList(),
+  onChanged: (selectedTargetDay == null || selectedTeacher == null)
+      ? null
+      : (value) async {
 
-                            setModalState(() {
-                              selectedTargetPeriod = value;
-                              selectedTargetPeriodInfo = null;
-                            });
+          setModalState(() {
+            selectedTargetPeriod = value;
+            selectedTargetPeriodInfo = null;
+          });
 
-                            final schoolId = int.tryParse(
-                                    widget.userData?['school_id'].toString() ?? "1") ??
-                                1;
+          final schoolId = int.tryParse(
+                  widget.userData?['school_id'].toString() ?? "1") ??
+              1;
 
-                            final result =
-                                await TeacherTimetableService.getTeacherPeriodInfo(
-                              teacherPhone: selectedTeacher!,
-                              schoolId: schoolId,
-                              dayNumber: selectedTargetDay!,
-                              periodNumber: value!,
-                            );
+          final result =
+              await TeacherTimetableService.getTeacherPeriodInfo(
+            teacherPhone: selectedTeacher!,
+            schoolId: schoolId,
+            dayNumber: selectedTargetDay!,
+            periodNumber: value!,
+          );
 
-                            setModalState(() {
-                              selectedTargetPeriodInfo = result;
-                            });
-                          },
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+          setModalState(() {
+            selectedTargetPeriodInfo = result;
+          });
+        },
+  decoration: const InputDecoration(
+    border: OutlineInputBorder(),
+  ),
+),
 
                   /// ================= عرض تفاصيل الحصة المختارة =================
                   if (selectedTargetPeriodInfo != null)
