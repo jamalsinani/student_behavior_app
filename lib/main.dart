@@ -3,6 +3,7 @@ import 'screens/auth/login_screen.dart';
 import 'core/app_theme.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/splash/splash_screen.dart';
+import 'screens/school_home_screen.dart';
 
 void main() {
   runApp(const StudentBehaviorApp());
@@ -25,7 +26,7 @@ class StudentBehaviorApp extends StatelessWidget {
     );
   },
 
-  home: const SplashScreen(),
+  home: const SchoolHomeScreen(),
 );
 
   }
