@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/app_colors.dart';
 import '../../services/teacher_class_students_service.dart';
 import '../../services/teacher_student_service.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 class TeacherClassStudentsScreen extends StatefulWidget {
   final Map<String, dynamic> classData;
@@ -24,6 +25,7 @@ class _TeacherClassStudentsScreenState
     with TickerProviderStateMixin {
 
   List students = [];
+  Set<int> absentStudents = {};
   bool isLoading = true;
 
   late AnimationController _animationController;
@@ -59,11 +61,29 @@ print("SCHOOL ID: $schoolId");
         schoolId: schoolId,
       );
 
-      setState(() {
-        students = data;
-        isLoading = false;
-      });
+      final today = DateTime.now();
+final formattedDate =
+    "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
 
+final periodNumber =
+    widget.classData['period_number'] ?? 1;
+
+final teacherPhone =
+    widget.userData?['phone']?.toString() ?? "";
+
+final absences = await TeacherStudentService.getTodayAbsences(
+  schoolId: schoolId,
+  subjectName: widget.classData['subject_name'],
+  teacherPhone: teacherPhone,
+  periodNumber: periodNumber,
+  absenceDate: formattedDate,
+);
+
+setState(() {
+  students = data;
+  absentStudents = absences.toSet();
+  isLoading = false;
+});
       _animationController.forward();
 
     } catch (e) {
@@ -312,76 +332,189 @@ print("SCHOOL ID: $schoolId");
           ),
         ],
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
+     Row(
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
 
-              _iconButton(
-  icon: Icons.edit_note_rounded,
-  color: Colors.blue,
-  onTap: () {
-    _showAddGradeDialog(student);
+    // 🔴 زر الغياب
+    GestureDetector(
+  onTap: () async {
+
+    final studentId = int.parse(student['id'].toString());
+
+    final schoolIdRaw = widget.userData?['school_id'];
+    final schoolId = schoolIdRaw is int
+        ? schoolIdRaw
+        : int.tryParse(schoolIdRaw?.toString() ?? "1") ?? 1;
+
+    final teacherPhone =
+        widget.userData?['phone']?.toString() ?? "";
+
+    final periodNumber =
+        widget.classData['period_number'] ?? 1;
+
+    final today = DateTime.now();
+    final formattedDate =
+        "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+    // ===============================
+    // إذا كان مسجل مسبقًا → احذفه
+    // ===============================
+    if (absentStudents.contains(studentId)) {
+
+  final removed = await TeacherStudentService.removeAbsence(
+    studentId: studentId,
+    schoolId: schoolId,
+    subjectName: widget.classData['subject_name'],
+    teacherPhone: teacherPhone,
+    periodNumber: periodNumber,
+    absenceDate: formattedDate,
+  );
+
+  if (removed) {
+    setState(() {
+      absentStudents.remove(studentId);
+    });
+
+    _showTopMessage(
+      message: "تم إلغاء الغياب",
+      isSuccess: true,
+    );
+  } else {
+    _showTopMessage(
+      message: "فشل إلغاء الغياب",
+      isSuccess: false,
+    );
+  }
+
+  return;
+}
+
+    // ===============================
+    // تسجيل غياب جديد
+    // ===============================
+    final success = await TeacherStudentService.addAbsence(
+      studentId: studentId,
+      studentName: student['name'],
+      schoolId: schoolId,
+      subjectName: widget.classData['subject_name'],
+      teacherPhone: teacherPhone,
+      periodNumber: periodNumber,
+      absenceDate: formattedDate,
+    );
+
+    if (success) {
+      setState(() {
+        absentStudents.add(studentId);
+      });
+
+      _showTopMessage(
+        message: "تم تسجيل الغياب بنجاح",
+        isSuccess: true,
+      );
+    } else {
+      _showTopMessage(
+        message: "هذا الطالب مسجل مسبقًا",
+        isSuccess: false,
+      );
+    }
   },
+  child: Container(
+    width: 34,
+    height: 34,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: absentStudents.contains(
+              int.parse(student['id'].toString()))
+          ? Colors.red
+          : Colors.grey.shade300,
+    ),
+    child: Text(
+      "غ",
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: absentStudents.contains(
+                int.parse(student['id'].toString()))
+            ? Colors.white
+            : Colors.black54,
+      ),
+    ),
+  ),
 ),
 
-              const SizedBox(width: 8),
+    const SizedBox(width: 8),
 
-              _iconButton(
-  icon: Icons.note_add_rounded,
-  color: Colors.green,
-  onTap: () {
-    _showAddNoteDialog(student);
-  },
+    _iconButton(
+      icon: Icons.edit_note_rounded,
+      color: Colors.blue,
+      onTap: () {
+        _showAddGradeDialog(student);
+      },
+    ),
+
+    const SizedBox(width: 8),
+
+    _iconButton(
+      icon: Icons.note_add_rounded,
+      color: Colors.green,
+      onTap: () {
+        _showAddNoteDialog(student);
+      },
+    ),
+
+    const SizedBox(width: 8),
+
+    _iconButton(
+      icon: Icons.emoji_events_rounded,
+      color: Colors.amber,
+      onTap: () async {
+        HapticFeedback.lightImpact();
+
+        final schoolIdRaw = widget.userData?['school_id'];
+        final schoolId = schoolIdRaw is int
+            ? schoolIdRaw
+            : int.tryParse(schoolIdRaw?.toString() ?? "1") ?? 1;
+
+        final teacherPhone =
+            widget.userData?['phone']?.toString() ?? "";
+
+        final success =
+            await TeacherStudentService.addStar(
+          studentId:
+              int.parse(student['id'].toString()),
+          teacherPhone: teacherPhone,
+          schoolId: schoolId,
+          subjectName:
+              widget.classData['subject_name'],
+        );
+
+        if (success) {
+          setState(() {
+            student['stars_count'] =
+                (student['stars_count'] ?? 0) + 1;
+          });
+        }
+      },
+    ),
+
+    const SizedBox(width: 6),
+
+    Text(
+      "${student['stars_count'] ?? 0}",
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 14,
+      ),
+    ),
+  ],
 ),
-
-              const SizedBox(width: 8),
-
-              Row(
-                children: [
-
-                  _iconButton(
-                    icon: Icons.emoji_events_rounded,
-                    color: Colors.amber,
-                    onTap: () async {
-
-                      HapticFeedback.lightImpact();
-
-                      final success =
-                      await TeacherStudentService.addStar(
-                        studentId:
-                        int.parse(student['id'].toString()),
-                        teacherPhone: teacherPhone,
-                        schoolId: schoolId,
-                        subjectName:
-                        widget.classData['subject_name'],
-                      );
-
-                      if (success) {
-                        setState(() {
-                          student['stars_count'] =
-                              (student['stars_count'] ?? 0) + 1;
-                        });
-                      }
-                    },
-                  ),
-
-                  const SizedBox(width: 6),
-
-                  Text(
-                    "${student['stars_count'] ?? 0}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
 
           const SizedBox(height: 18),
 
@@ -455,6 +588,28 @@ print("SCHOOL ID: $schoolId");
       ),
     );
   }
+  
+  // ===============================
+// 🔔 رسالة علوية احترافية
+// ===============================
+void _showTopMessage({
+  required String message,
+  required bool isSuccess,
+}) {
+  Flushbar(
+    message: message,
+    duration: const Duration(seconds: 2),
+    flushbarPosition: FlushbarPosition.TOP,
+    margin: const EdgeInsets.all(16),
+    borderRadius: BorderRadius.circular(12),
+    backgroundColor:
+        isSuccess ? Colors.green.shade600 : Colors.red.shade600,
+    icon: Icon(
+      isSuccess ? Icons.check_circle : Icons.error,
+      color: Colors.white,
+    ),
+  ).show(context);
+}
 
   void _showAddGradeDialog(Map<String, dynamic> student) {
 

@@ -230,5 +230,123 @@ static Future<List<dynamic>> getTeacherArchive({
   return [];
 }
 
+// ===============================
+// 🔴 تسجيل غياب طالب
+// ===============================
+static Future<bool> addAbsence({
+  required int studentId,
+  required String studentName,
+  required int schoolId,
+  required String subjectName,
+  required String teacherPhone,
+  required int periodNumber,
+  required String absenceDate,
+}) async {
+  try {
+    final response = await http.post(
+      Uri.parse("$baseUrl/teacher/add-absence"),
+      headers: {
+        "Accept": "application/json",
+      },
+      body: {
+        "student_id": studentId.toString(),
+        "student_name": studentName,
+        "school_id": schoolId.toString(),
+        "subject_name": subjectName,
+        "teacher_phone": teacherPhone,
+        "period_number": periodNumber.toString(),
+        "absence_date": absenceDate,
+      },
+    );
+
+    print("🔵 STATUS CODE: ${response.statusCode}");
+    print("🔵 RESPONSE BODY: ${response.body}");
+
+    final data = json.decode(response.body);
+
+    return data['status'] == true;
+
+  } catch (e) {
+    print("🔴 ERROR: $e");
+    return false;
+  }
+}
+
+// ===============================
+// 🔴 حذف غياب طالب
+// ===============================
+static Future<bool> removeAbsence({
+  required int studentId,
+  required int schoolId,
+  required String subjectName,
+  required String teacherPhone,
+  required int periodNumber,
+  required String absenceDate,
+}) async {
+  try {
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/teacher/remove-absence"),
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: jsonEncode({
+        "student_id": studentId,
+        "school_id": schoolId,
+        "subject_name": subjectName,
+        "teacher_phone": teacherPhone,
+        "period_number": periodNumber,
+        "absence_date": absenceDate,
+      }),
+    );
+
+    print("REMOVE STATUS CODE: ${response.statusCode}");
+    print("REMOVE BODY: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data["status"] == true;
+    }
+
+    return false;
+
+  } catch (e) {
+    print("REMOVE ERROR: $e");
+    return false;
+  }
+}
+
+static Future<List<int>> getTodayAbsences({
+  required int schoolId,
+  required String subjectName,
+  required String teacherPhone,
+  required int periodNumber,
+  required String absenceDate,
+}) async {
+  try {
+
+    final uri = Uri.parse("$baseUrl/teacher/today-absences")
+        .replace(queryParameters: {
+      "school_id": schoolId.toString(),
+      "subject_name": subjectName,
+      "teacher_phone": teacherPhone,
+      "period_number": periodNumber.toString(),
+      "absence_date": absenceDate,
+    });
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => int.parse(e.toString())).toList();
+    }
+
+    return [];
+
+  } catch (e) {
+    return [];
+  }
+}
 
 }
