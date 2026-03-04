@@ -4,6 +4,8 @@ import 'auth/login_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 class SchoolHomeScreen extends StatefulWidget {
   const SchoolHomeScreen({super.key});
@@ -21,7 +23,7 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
 
   String schoolLogo = "assets/images/default_school.png";
 
-  List<String> adsImages = [];
+  List<Map<String, String>> ads = [];
 
   List<Map<String, String>> stats = [];
 
@@ -42,8 +44,11 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
 
     setState(() {
           // الإعلانات
-      adsImages = List<String>.from(
-        data["ads"].map((item) => item["image"])
+      ads = List<Map<String, String>>.from(
+        data["ads"].map((item) => {
+          "image": item["image"].toString(),
+          "link": item["link"]?.toString() ?? "",
+        }),
       );
       // الاحصائيات
     
@@ -56,14 +61,34 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
   ];
       // آخر الأخبار
       latestNews = List<Map<String, String>>.from(
-    data["news"].map((item) => {
-      "title": item["title"].toString(),
-      "subtitle": item["subtitle"].toString(),
-      "instagram_url": item["instagram_url"].toString(),
-    }),
-  );
+  data["news"].map((item) => {
+    "title": item["title"].toString(),
+    "subtitle": item["subtitle"].toString(),
+    "instagram_url": item["instagram_url"].toString(),
+    "date": item["created_at"].toString(),
+  }),
+);
 
-      // الداعمون
+// ترتيب الأخبار حسب التاريخ (الأحدث أولاً)
+latestNews = List<Map<String, String>>.from(
+  data["news"].map((item) => {
+    "title": item["title"].toString(),
+    "subtitle": item["subtitle"].toString(),
+    "instagram_url": item["instagram_url"].toString(),
+    "date": item["created_at"]?.toString() ?? "",
+  }),
+);
+
+latestNews.sort((a, b) {
+  DateTime dateA = DateTime.tryParse(a["date"] ?? "") ?? DateTime(2000);
+  DateTime dateB = DateTime.tryParse(b["date"] ?? "") ?? DateTime(2000);
+  return dateB.compareTo(dateA);
+});
+
+if (latestNews.length > 3) {
+  latestNews = latestNews.sublist(0, 3);
+}
+      
       // الداعمون
   supporters = List<Map<String, String>>.from(
     data["supporters"].map((item) => {
@@ -87,17 +112,22 @@ void initState() {
 
   _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
 
-    if (adsImages.isEmpty) return;
+  if (!mounted) return;
 
-    currentAd = (currentAd + 1) % adsImages.length;
+  if (ads.isEmpty) return;
 
-    _adsController.animateToPage(
-      currentAd,
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOut,
-    );
+  if (!_adsController.hasClients) return;
 
-  });
+  currentAd++;
+
+  _adsController.animateToPage(
+    currentAd,
+    duration: const Duration(milliseconds: 600),
+    curve: Curves.easeInOut,
+  );
+
+});
+
 }
 
   @override
@@ -148,7 +178,7 @@ void initState() {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -163,21 +193,61 @@ void initState() {
             const SizedBox(height: 15),
 
             SizedBox(
-  height: 200,
-  child: adsImages.isEmpty
+              // مقاس الاعلان 1200 * 700
+            height: 220,
+          child: ads.isEmpty
       ? const Center(child: CircularProgressIndicator())
       : PageView.builder(
           controller: _adsController,
-          itemCount: adsImages.length,
+          itemCount: ads.length * 1000,
           itemBuilder: (context, index) {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(25),
-                child: Image.network(
-                  adsImages[index],
-                  fit: BoxFit.cover,
+                child: GestureDetector(
+  onTap: () {
+    if (ads[index % ads.length]["link"] != null &&
+        ads[index % ads.length]["link"]!.isNotEmpty) {
+      openInstagram(ads[index % ads.length]["link"]!);
+    }
+  },
+  child: Stack(
+    children: [
+
+      Image.network(
+        ads[index % ads.length]["image"]!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+      ),
+
+      if (ads[index % ads.length]!.isNotEmpty)
+      Positioned(
+        top: 10,
+        left: 10,
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ads[index % ads.length]["link"]!.contains("instagram")
+              ? const FaIcon(
+                  FontAwesomeIcons.instagram,
+                  size: 16,
+                  color: Colors.white,
+                )
+              : const Icon(
+                  Icons.language,
+                  size: 16,
+                  color: Colors.white,
                 ),
+        ),
+      ),
+
+    ],
+  ),
+)
               ),
             );
           },
@@ -256,11 +326,16 @@ Padding(
 const SizedBox(height: 12),
 
 Column(
-  children: List.generate(latestNews.length, (index) {
+  children: List.generate(
+  latestNews.length > 3 ? 3 : latestNews.length,
+  (index) {
     final news = latestNews[index];
 
     return GestureDetector(
   onTap: () {
+
+    print(news["instagram_url"]);
+
     if (news["instagram_url"] != null &&
         news["instagram_url"]!.isNotEmpty) {
       openInstagram(news["instagram_url"]!);
@@ -294,12 +369,24 @@ Column(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                news["title"] ?? "",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      news["title"] ?? "",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const FaIcon(
+                    FontAwesomeIcons.instagram,
+                    size: 18,
+                    color: Color(0xFFE1306C),
+                  )
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -435,10 +522,13 @@ const SizedBox(height: 40),
 
   Future<void> openInstagram(String url) async {
 
-  final uri = Uri.parse(url);
+  Uri uri = Uri.parse(url);
 
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!await launchUrl(
+    uri,
+    mode: LaunchMode.externalApplication,
+  )) {
+    throw Exception('Could not launch $url');
   }
 
 }
