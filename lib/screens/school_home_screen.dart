@@ -357,7 +357,7 @@ const SizedBox(height: 40),
                 );
               },
               child: const Text(
-                "الدخول إلى المنصة",
+                "الدخول إلى التطبيق",
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold),

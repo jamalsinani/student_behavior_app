@@ -14,7 +14,11 @@ class TeacherTimetableScreen extends StatefulWidget {
 }
 
 class _TeacherTimetableScreenState
-    extends State<TeacherTimetableScreen> {
+    extends State<TeacherTimetableScreen> 
+    with SingleTickerProviderStateMixin {
+
+      late AnimationController pulseController;
+      late Animation<double> pulseAnimation;
 
   String? selectedTeacher;
   int? selectedTargetDay;
@@ -71,10 +75,32 @@ class _TeacherTimetableScreenState
 } 
 
   @override
-  void initState() {
-    super.initState();
-    loadTimetable();
-  }
+void initState() {
+  super.initState();
+
+  pulseController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat(reverse: true);
+
+  pulseAnimation = Tween<double>(
+    begin: 1.0,
+    end: 1.12,
+  ).animate(
+    CurvedAnimation(
+      parent: pulseController,
+      curve: Curves.easeInOut,
+    ),
+  );
+
+  loadTimetable();
+}
+
+@override
+void dispose() {
+  pulseController.dispose();
+  super.dispose();
+}
 
   Future<void> loadTimetable() async {
     setState(() => isLoading = true);
@@ -359,27 +385,49 @@ class _TeacherTimetableScreenState
       child: Row(
         children: [
 
-          Container(
-            width: 75,
-            height: 75,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                "${item['period_number']}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+         AnimatedBuilder(
+  animation: pulseAnimation,
+  builder: (context, child) {
+    return Transform.scale(
+      scale: isNow ? pulseAnimation.value : 1,
+      child: Container(
+        width: 75,
+        height: 75,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          shape: BoxShape.circle,
+          border: isNow
+              ? Border.all(
+                  color: Colors.redAccent,
+                  width: 3,
+                )
+              : null,
+          boxShadow: isNow
+              ? [
+                  BoxShadow(
+                    color: Colors.redAccent.withOpacity(0.7),
+                    blurRadius: 20,
+                    spreadRadius: 3,
+                  )
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            "${item['period_number']}",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
             ),
           ),
+        ),
+      ),
+    );
+  },
+),
 
-          const SizedBox(width: 20),
-
+const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -521,6 +569,7 @@ Positioned(
   selectedTargetPeriodInfo = null;
   
   List<int> availablePeriods = [];   
+  bool isAdminTeacher = false;
 
   showModalBottomSheet(
     context: context,
@@ -580,7 +629,9 @@ Positioned(
                   const SizedBox(height: 8),
 
                   DropdownButtonFormField<String>(
-                    value: selectedTeacher,
+                    value: teachersList.any((t) => t['phone'].toString() == selectedTeacher)
+                    ? selectedTeacher
+                    : null,
                     isExpanded: true,
                     items: teachersList.map<DropdownMenuItem<String>>((teacher) {
                       return DropdownMenuItem<String>(
@@ -632,16 +683,31 @@ Positioned(
         1;
 
     final data =
-        await TeacherTimetableService.getTimetable(
-      teacherPhone: selectedTeacher!,
-      schoolId: schoolId,
-      dayNumber: value,
-    );
+    await TeacherTimetableService.getTimetable(
+  teacherPhone: selectedTeacher!,
+  schoolId: schoolId,
+  dayNumber: value,
+);
 
-    setModalState(() {
-      availablePeriods =
-           data.map<int>((e) => int.parse(e['period_number'].toString())).toList();
-    });
+setModalState(() {
+
+  if (data.isEmpty) {
+  isAdminTeacher = true;
+
+  // المعلم إداري → إظهار جميع الحصص
+  availablePeriods = List.generate(8, (index) => index + 1);
+
+} else {
+  isAdminTeacher = false;
+
+  // المعلم لديه جدول → تظهر حصصه فقط
+  availablePeriods = data
+      .map<int>((e) => int.parse(e['period_number'].toString()))
+      .toList();
+}
+
+});
+
 
     print("AVAILABLE PERIODS: $availablePeriods");
   }
@@ -656,6 +722,25 @@ Positioned(
                   /// ================= الحصة البديلة =================
                   const Text("اختر الحصة البديلة"),
 const SizedBox(height: 8),
+
+if (isAdminTeacher)
+Container(
+  margin: const EdgeInsets.only(top: 10, bottom: 10),
+  padding: const EdgeInsets.all(12),
+  decoration: BoxDecoration(
+    color: Colors.orange.shade50,
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(color: Colors.orange.shade300),
+  ),
+  child: const Text(
+    "المعلم المختار ليس لديه حصص في الجدول",
+    style: TextStyle(
+      color: Colors.orange,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
+
 
 DropdownButtonFormField<int>(
   value: selectedTargetPeriod,
@@ -737,10 +822,10 @@ DropdownButtonFormField<int>(
   width: double.infinity,
   child: ElevatedButton(
     onPressed: (selectedTeacher == null ||
-            selectedTargetDay == null ||
-            selectedTargetPeriod == null)
-        ? null
-        : () async {
+        selectedTargetDay == null ||
+        selectedTargetPeriod == null)
+    ? null
+    : () async {
 
             print("SEND BUTTON PRESSED");
 
@@ -754,11 +839,12 @@ DropdownButtonFormField<int>(
             final requesterName =
                 widget.userData?['name'] ?? "";
 
-            final substitute =
-                teachersList.firstWhere(
-                    (t) =>
-                        t['phone'].toString() ==
-                        selectedTeacher);
+            final substitute = teachersList.firstWhere(
+  (t) => t['phone'].toString() == selectedTeacher,
+  orElse: () => {},
+);
+
+final substituteName = substitute['name'] ?? "";
 
             print("CALLING API NOW");
 
@@ -768,7 +854,7 @@ DropdownButtonFormField<int>(
   requesterPhone: requesterPhone,
   requesterName: requesterName,
   substitutePhone: selectedTeacher!,
-  substituteName: substitute['name'],
+  substituteName: substituteName,
   originalDay: dayNumber,
   originalPeriod: periodNumber,
   targetDay: selectedTargetDay!,
