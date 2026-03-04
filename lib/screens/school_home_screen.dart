@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'auth/login_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class SchoolHomeScreen extends StatefulWidget {
   const SchoolHomeScreen({super.key});
@@ -18,53 +21,84 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
 
   String schoolLogo = "assets/images/default_school.png";
 
-  final List<String> adsImages = [
-    "assets/images/ad1.png",
-    "assets/images/ad2.png",
-    "assets/images/ad3.png",
-  ];
+  List<String> adsImages = [];
 
-  final List<Map<String, String>> stats = [
-    {"icon": "👨‍🎓", "title": "850", "subtitle": "طالب"},
-    {"icon": "👨‍🏫", "title": "65", "subtitle": "معلم"},
-    {"icon": "🏫", "title": "32", "subtitle": "فصل"},
-    {"icon": "📍", "title": "مسقط", "subtitle": "الموقع"},
-    {"icon": "🎓", "title": "الحلقة", "subtitle": "الثانية"},
-  ];
+  List<Map<String, String>> stats = [];
 
-  final List<Map<String, String>> latestNews = [
-    {
-      "title": "تكريم الطلبة المتفوقين",
-      "subtitle": "حفل مميز بحضور أولياء الأمور"
-    },
-    {
-      "title": "إقامة معرض العلوم السنوي",
-      "subtitle": "إبداعات طلابية مذهلة"
-    },
-    {
-      "title": "المسابقة الثقافية الكبرى",
-      "subtitle": "تنافس رائع بين الطلبة"
-    },
-  ];
+  List<Map<String, String>> latestNews = [];
 
-  final List<Map<String, String>> supporters = [
-    {"name": "شركة التقنية الحديثة", "logo": ""},
-    {"name": "مؤسسة الإبداع", "logo": ""},
+  List<Map<String, String>> supporters = [];
+
+  Future<void> loadAds() async {
+
+  final url = Uri.parse(
+      "https://abuobaida-edu.com/api/school-home/1");
+
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+
+    final data = json.decode(response.body);
+
+    setState(() {
+          // الإعلانات
+      adsImages = List<String>.from(
+        data["ads"].map((item) => item["image"])
+      );
+      // الاحصائيات
+    
+      stats = [
+    {"icon": "👨‍🎓", "title": data["school"]["students"], "subtitle": "طالب"},
+    {"icon": "👨‍🏫", "title": data["school"]["teachers"], "subtitle": "معلم"},
+    {"icon": "🏫", "title": data["school"]["classes"], "subtitle": "فصل"},
+    {"icon": "📍", "title": data["school"]["location"], "subtitle": "الموقع"},
+    {"icon": "🎓", "title": data["school"]["stage"], "subtitle": "المرحلة"},
   ];
+      // آخر الأخبار
+      latestNews = List<Map<String, String>>.from(
+    data["news"].map((item) => {
+      "title": item["title"].toString(),
+      "subtitle": item["subtitle"].toString(),
+      "instagram_url": item["instagram_url"].toString(),
+    }),
+  );
+
+      // الداعمون
+      // الداعمون
+  supporters = List<Map<String, String>>.from(
+    data["supporters"].map((item) => {
+      "name": item["name"].toString(),
+      "logo": item["logo"].toString(),
+    }),
+  );
+
+  
+    });
+
+  }
+
+}
 
   @override
-  void initState() {
-    super.initState();
+void initState() {
+  super.initState();
 
-    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      currentAd = (currentAd + 1) % adsImages.length;
-      _adsController.animateToPage(
-        currentAd,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
+  loadAds();
+
+  _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+
+    if (adsImages.isEmpty) return;
+
+    currentAd = (currentAd + 1) % adsImages.length;
+
+    _adsController.animateToPage(
+      currentAd,
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeInOut,
+    );
+
+  });
+}
 
   @override
   void dispose() {
@@ -129,24 +163,26 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
             const SizedBox(height: 15),
 
             SizedBox(
-              height: 200,
-              child: PageView.builder(
-                controller: _adsController,
-                itemCount: adsImages.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: Image.asset(
-                        adsImages[index],
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  );
-                },
+  height: 200,
+  child: adsImages.isEmpty
+      ? const Center(child: CircularProgressIndicator())
+      : PageView.builder(
+          controller: _adsController,
+          itemCount: adsImages.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: Image.network(
+                  adsImages[index],
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
+            );
+          },
+        ),
+),
 
             const SizedBox(height: 30),
 
@@ -223,57 +259,66 @@ Column(
   children: List.generate(latestNews.length, (index) {
     final news = latestNews[index];
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 45,
-            decoration: BoxDecoration(
-              color: const Color(0xff203a43),
-              borderRadius: BorderRadius.circular(4),
-            ),
+    return GestureDetector(
+  onTap: () {
+    if (news["instagram_url"] != null &&
+        news["instagram_url"]!.isNotEmpty) {
+      openInstagram(news["instagram_url"]!);
+    }
+  },
+  child: Container(
+    margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.06),
+          blurRadius: 10,
+        )
+      ],
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 4,
+          height: 45,
+          decoration: BoxDecoration(
+            color: const Color(0xff203a43),
+            borderRadius: BorderRadius.circular(4),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  news["title"] ?? "",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                news["title"] ?? "",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  news["subtitle"] ?? "",
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                news["subtitle"] ?? "",
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
                 ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+              ),
+            ],
+          ),
+        )
+      ],
+    ),
+  ),
+);
   }),
 ),
+
 
 const SizedBox(height: 30),
 
@@ -312,7 +357,12 @@ SizedBox(
               backgroundColor: Colors.grey.shade200,
               child: supporter["logo"]!.isEmpty
                   ? const Icon(Icons.business, size: 30)
-                  : Image.asset(supporter["logo"]!),
+                  : Image.network(
+                    supporter["logo"]!,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  ),
             ),
             const SizedBox(height: 10),
             Text(
@@ -382,4 +432,15 @@ const SizedBox(height: 40),
       ),
     );
   }
+
+  Future<void> openInstagram(String url) async {
+
+  final uri = Uri.parse(url);
+
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+}
+
 }
