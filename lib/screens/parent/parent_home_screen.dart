@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
-import '../../core/widgets/app_card.dart';
+import '../../services/parent_service.dart';
+import 'student_profile_screen.dart';
+import '../school_home_screen.dart';
 
-class ParentHomeScreen extends StatelessWidget {
+class ParentHomeScreen extends StatefulWidget {
 
   final Map<String, dynamic> userData;
 
@@ -10,6 +11,17 @@ class ParentHomeScreen extends StatelessWidget {
     super.key,
     required this.userData,
   });
+
+  @override
+  State<ParentHomeScreen> createState() => _ParentHomeScreenState();
+}
+
+class _ParentHomeScreenState extends State<ParentHomeScreen> {
+
+  List students = [];
+  List notes = [];
+
+  bool isLoading = true;
 
   String getGreeting() {
     final hour = DateTime.now().hour;
@@ -19,19 +31,52 @@ class ParentHomeScreen extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    loadStudents();
+  }
+
+  Future<void> loadStudents() async {
+
+    try {
+
+      final phone = widget.userData['phone'].toString();
+      final schoolId = widget.userData['school_id'].toString();
+
+      final data = await ParentService.getChildren(
+        phone: phone,
+        schoolId: schoolId,
+      );
+
+      setState(() {
+        students = data;
+        isLoading = false;
+      });
+
+    } catch (e) {
+
+      setState(() {
+        isLoading = false;
+      });
+
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
 
-    final parentName =
-    userData['account_type'] == 'parent'
-        ? "ولي الأمر"
-        : (userData['name'] ?? "المستخدم");
-    final List students = userData['students'] ?? [];
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    final parentName = widget.userData['name'] ?? "ولي الأمر";
 
     return Scaffold(
+      backgroundColor: const Color(0xffF4F7FC),
+
       body: Column(
         children: [
 
-          /// 🔹 HEADER
+          /// ================= HEADER =================
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(
@@ -40,35 +85,34 @@ class ParentHomeScreen extends StatelessWidget {
               left: 20,
               bottom: 30,
             ),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.parentPrimary,
-                  AppColors.parentSecondary,
+                  colors.primary,
+                  colors.primaryContainer,
                 ],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
               ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(35),
+                bottomRight: Radius.circular(35),
               ),
             ),
+
             child: Row(
               children: [
 
                 CircleAvatar(
-  radius: 30,
-  backgroundColor: Colors.white,
-  child: ClipOval(
-    child: Image.asset(
-      'assets/images/parent_icon.png',
-      width: 45,
-      height: 45,
-      fit: BoxFit.cover,
-    ),
-  ),
-),
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/parent_icon.png',
+                      width: 45,
+                      height: 45,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
 
                 const SizedBox(width: 15),
 
@@ -76,6 +120,7 @@ class ParentHomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+
                       Text(
                         getGreeting(),
                         style: const TextStyle(
@@ -83,7 +128,9 @@ class ParentHomeScreen extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
+
                       const SizedBox(height: 5),
+
                       Text(
                         parentName,
                         style: const TextStyle(
@@ -92,156 +139,207 @@ class ParentHomeScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       const SizedBox(height: 5),
+
                       Text(
                         "عدد الأبناء: ${students.length}",
                         style: const TextStyle(
                           color: Colors.white70,
-                          fontSize: 14,
                         ),
                       ),
+
                     ],
                   ),
                 ),
 
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.notifications_none,
-                    color: Colors.white,
+                /// زر الخروج
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(40),
+                    onTap: () {
+
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SchoolHomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.red.withOpacity(0.35),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.logout_rounded,
+                        color: Colors.red,
+                        size: 22,
+                      ),
+                    ),
                   ),
                 )
+
               ],
             ),
           ),
 
           const SizedBox(height: 20),
 
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ListView(
-                children: [
+          /// ================= الملاحظات =================
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.all(16),
 
-                  /// 🔹 ملاحظات عامة
-                  AppCard(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "ملاحظات اليوم",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              "لا توجد ملاحظات جديدة",
-                              style: TextStyle(
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Icon(
-                          Icons.note_alt_outlined,
-                          size: 32,
-                          color: AppColors.primary,
-                        ),
-                      ],
-                    ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                )
+              ],
+            ),
+
+            child: Row(
+              children: [
+
+                Icon(
+                  Icons.notifications,
+                  color: colors.primary,
+                ),
+
+                const SizedBox(width: 10),
+
+                const Text(
+                  "الملاحظات",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
 
-                  const SizedBox(height: 20),
-
-                  /// 🔹 قائمة الأبناء
-                  const Text(
-                    "أبناؤك في المدرسة",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  if (students.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text(
-                          "لا يوجد أبناء مسجلين",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-
-                  ...students.map((student) {
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: AppCard(
-                        child: Row(
-                          children: [
-
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.person,
-                                color: AppColors.primary,
-                              ),
-                            ),
-
-                            const SizedBox(width: 15),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    student['name'],
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    "عرض السجل السلوكي",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: Colors.grey,
-                            )
-
-                          ],
-                        ),
-                      ),
-                    );
-
-                  }).toList(),
-
-                ],
-              ),
+              ],
             ),
           ),
+
+          const SizedBox(height: 20),
+
+          /// ================= قائمة الأبناء =================
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: students.length,
+              itemBuilder: (context, index) {
+
+                final student = students[index];
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(18),
+
+                    onTap: () {
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => StudentProfileScreen(
+                            student: student,
+                          ),
+                        ),
+                      );
+
+                    },
+
+                    child: Container(
+
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 16,
+                      ),
+
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 12,
+                          )
+                        ],
+                      ),
+
+                      child: Row(
+                        children: [
+
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: colors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.school,
+                              color: colors.primary,
+                            ),
+                          ),
+
+                          const SizedBox(width: 15),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
+                                Text(
+                                  student['name'] ?? "",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 4),
+
+                                Text(
+                                  "الصف ${student['class'] ?? '-'} - الشعبة ${student['section'] ?? '-'}",
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+
+                              ],
+                            ),
+                          ),
+
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: colors.primary,
+                          )
+
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+
+              },
+            ),
+          ),
+
         ],
       ),
     );

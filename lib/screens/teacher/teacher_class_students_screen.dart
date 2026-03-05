@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:another_flushbar/flushbar.dart';
 import '../../core/app_colors.dart';
 import '../../services/teacher_class_students_service.dart';
 import '../../services/teacher_student_service.dart';
@@ -500,6 +501,16 @@ setState(() {
             student['stars_count'] =
                 (student['stars_count'] ?? 0) + 1;
           });
+
+          _showTopMessage(
+            message: "تم إضافة نجمة للطالب ⭐",
+            isSuccess: true,
+          );
+        } else {
+          _showTopMessage(
+            message: "فشل إضافة النجمة",
+            isSuccess: false,
+          );
         }
       },
     ),
@@ -751,6 +762,16 @@ void _showTopMessage({
 
                           if (success) {
                             Navigator.pop(context);
+
+                            _showTopMessage(
+                              message: "تم حفظ الدرجة بنجاح",
+                              isSuccess: true,
+                            );
+                          } else {
+                            _showTopMessage(
+                              message: "فشل حفظ الدرجة",
+                              isSuccess: false,
+                            );
                           }
                         },
                         child: const Text(
@@ -875,28 +896,32 @@ void _showAddNoteDialog(Map<String, dynamic> student) {
                     ),
                     onPressed: () async {
 
-                      if (noteController.text.isEmpty) return;
+                        if (noteController.text.isEmpty) return;
 
-                      final success =
-                          await TeacherStudentService.addNote(
-                        studentId:
-                            int.parse(student['id'].toString()),
-                        schoolId: schoolId,
-                        subjectName:
-                            widget.classData['subject_name'],
-                        noteText: noteController.text,
-                        teacherPhone: teacherPhone,
-                      );
-
-                      if (success) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("تم حفظ الملاحظة بنجاح"),
-                          ),
+                        final success =
+                            await TeacherStudentService.addNote(
+                          studentId: int.parse(student['id'].toString()),
+                          schoolId: schoolId,
+                          subjectName: widget.classData['subject_name'],
+                          noteText: noteController.text,
+                          teacherPhone: teacherPhone,
                         );
-                      }
-                    },
+
+                        if (success) {
+                          Navigator.of(context, rootNavigator: true).pop();
+
+                          _showTopMessage(
+                            message: "تم حفظ الملاحظة بنجاح",
+                            isSuccess: true,
+                          );
+                        } else {
+                          _showTopMessage(
+                            message: "فشل حفظ الملاحظة",
+                            isSuccess: false,
+                          );
+                        }
+
+                      },
                     child: const Text(
                       "حفظ الملاحظة",
                       style: TextStyle(color: Colors.white),

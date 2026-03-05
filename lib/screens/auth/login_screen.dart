@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:another_flushbar/flushbar.dart';
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../teacher/teacher_home_screen.dart';
@@ -55,9 +56,15 @@ class _LoginScreenState extends State<LoginScreen> {
   void login() async {
 
     if (phoneController.text.isEmpty || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("يرجى إدخال جميع البيانات")),
-      );
+      Flushbar(
+      message: "يرجى إدخال جميع البيانات",
+      duration: const Duration(seconds: 3),
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: Colors.red,
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+      icon: const Icon(Icons.error_outline, color: Colors.white),
+      ).show(context);
       return;
     }
 
@@ -207,9 +214,15 @@ if (rememberMe) {
 
       setState(() => isLoading = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      Flushbar(
+      message: e.toString(),
+      duration: const Duration(seconds: 3),
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: Colors.red,
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+      icon: const Icon(Icons.error_outline, color: Colors.white),
+    ).show(context);
     }
   }
 
@@ -348,52 +361,62 @@ if (rememberMe) {
                           ),
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
 
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ForgotPasswordScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "نسيت كلمة المرور؟",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
+                        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
 
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const RegisterScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'تسجيل جديد',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+            /// تسجيل جديد (يسار)
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RegisterScreen(),
                   ),
+                );
+              },
+              child: const Text(
+                'تسجيل جديد',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
+            ),
+
+            /// نسيت كلمة المرور (يمين)
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ForgotPasswordScreen(),
+                  ),
+                );
+              },
+              child: const Text(
+                "نسيت كلمة المرور؟",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+
+          ],
         ),
-      ),
-    );
-  }
+
+        ],
+        ),
+        ),
+        ),
+        ),
+        ],
+        ),
+        ),
+        ),
+        );
+          }
 }

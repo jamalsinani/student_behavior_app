@@ -56,12 +56,12 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
       // الاحصائيات
     
       stats = [
-    {"icon": "👨‍🎓", "title": data["school"]["students"], "subtitle": "طالب"},
-    {"icon": "👨‍🏫", "title": data["school"]["teachers"], "subtitle": "معلم"},
-    {"icon": "🏫", "title": data["school"]["classes"], "subtitle": "فصل"},
-    {"icon": "📍", "title": data["school"]["location"], "subtitle": "الموقع"},
-    {"icon": "🎓", "title": data["school"]["stage"], "subtitle": "المرحلة"},
-  ];
+  {"icon": "students", "title": data["school"]["students"].toString(), "subtitle": "طالب"},
+  {"icon": "teachers", "title": data["school"]["teachers"].toString(), "subtitle": "معلم"},
+  {"icon": "classes", "title": data["school"]["classes"].toString(), "subtitle": "فصل"},
+  {"icon": "location", "title": data["school"]["location"].toString(), "subtitle": "الموقع"},
+  {"icon": "stage", "title": data["school"]["stage"].toString(), "subtitle": "المرحلة"},
+    ];
       // آخر الأخبار
       latestNews = List<Map<String, String>>.from(
   data["news"].map((item) => {
@@ -288,9 +288,10 @@ void initState() {
                             ],
                           ),
                           child: Center(
-                            child: Text(
-                              item["icon"]!,
-                              style: const TextStyle(fontSize: 22),
+                            child: Icon(
+                              _getStatIcon(item["icon"]!),
+                              color: Colors.white,
+                              size: 28,
                             ),
                           ),
                         ),
@@ -604,6 +605,24 @@ const SizedBox(height: 40),
     );
   }
 
+  IconData _getStatIcon(String name) {
+  switch (name) {
+    case "students":
+      return Icons.school;
+    case "teachers":
+      return Icons.person;
+    case "classes":
+      return Icons.meeting_room;
+    case "location":
+      return Icons.location_on;
+    case "stage":
+      return Icons.workspace_premium;
+    default:
+      return Icons.info;
+  }
+}
+
+
   Future<void> openInstagram(String url) async {
 
   Uri uri = Uri.parse(url);
@@ -616,5 +635,6 @@ const SizedBox(height: 40),
   }
 
 }
+
 
 }
