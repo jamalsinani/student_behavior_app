@@ -10,6 +10,7 @@ import 'teacher_records_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
+import '../school_home_screen.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -245,14 +246,28 @@ class _TeacherHomeScreenState
   }
 }
 
+  String formatTeacherName(String fullName) {
+
+  final parts = fullName.trim().split(" ");
+
+  if (parts.length <= 2) return fullName;
+
+  if (parts[0] == "عبد" && parts.length >= 3) {
+    return "${parts[0]} ${parts[1]} ${parts.last}";
+  }
+
+  return "${parts.first} ${parts.last}";
+}
+
 
   @override
   Widget build(BuildContext context) {
 
-    final teacherName =
+    final teacherName = formatTeacherName(
         widget.userData?['teacher_name'] ??
-            widget.userData?['name'] ??
-            "المعلم";
+        widget.userData?['name'] ??
+        "المعلم",
+      );
 
     final subjectName =
         widget.userData?['subject_name'] ??
@@ -1078,11 +1093,14 @@ if (index <
 }
 
   void _confirmLogout() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-          builder: (_) =>
-              const LoginScreen()),
-    );
-  }
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const SchoolHomeScreen(),
+    ),
+    (route) => false,
+  );
+}
+
+
 }

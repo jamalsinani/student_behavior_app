@@ -105,4 +105,36 @@ static Future<Map<String, dynamic>> addRole({
   }
 }
 
+
+static Future<Map<String, dynamic>> forgotPassword({
+  required String phone,
+}) async {
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/forgot-password"),
+    headers: {
+      "Accept": "application/json",
+    },
+    body: {
+      'phone': phone,
+      'school_id': '1'
+    },
+  );
+
+  if (response.statusCode == 200) {
+
+    final data = jsonDecode(response.body);
+
+    if (data["status"] == true) {
+      return data;
+    } else {
+      throw Exception(data["message"]);
+    }
+
+  } else {
+    throw Exception("Server Error");
+  }
+}
+
+
 }

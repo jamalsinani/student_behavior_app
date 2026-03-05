@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../teacher/teacher_home_screen.dart';
 import '../parent/parent_home_screen.dart';
 import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,19 +29,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> loadSavedData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedPhone = prefs.getString('saved_phone');
-    final savedPassword = prefs.getString('saved_password');
-    final savedRemember = prefs.getBool('remember_me') ?? false;
 
-    if (savedRemember) {
-      setState(() {
-        rememberMe = true;
-        phoneController.text = savedPhone ?? '';
-        passwordController.text = savedPassword ?? '';
-      });
-    }
+  final prefs = await SharedPreferences.getInstance();
+
+  final savedPhone = prefs.getString('saved_phone');
+  final savedPassword = prefs.getString('saved_password');
+  final savedRemember = prefs.getBool('remember_me') ?? false;
+
+  if (savedRemember && savedPhone != null && savedPassword != null) {
+
+    setState(() {
+      rememberMe = true; // ✅ مهم جداً
+      phoneController.text = savedPhone;
+      passwordController.text = savedPassword;
+    });
+
+    /// تسجيل الدخول تلقائي
+    Future.delayed(const Duration(milliseconds: 300), () {
+      login();
+    });
   }
+}
+
 
   void login() async {
 
@@ -65,13 +75,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
       /// ✅ حفظ التذكر
       final prefs = await SharedPreferences.getInstance();
-      if (rememberMe) {
-        await prefs.setString('saved_phone', phoneController.text.trim());
-        await prefs.setString('saved_password', passwordController.text.trim());
-        await prefs.setBool('remember_me', true);
-      } else {
-        await prefs.clear();
-      }
+
+/// حفظ حالة تسجيل الدخول
+await prefs.setBool('is_logged_in', true);
+
+/// حفظ التذكر
+if (rememberMe) {
+  await prefs.setString('saved_phone', phoneController.text.trim());
+  await prefs.setString('saved_password', passwordController.text.trim());
+  await prefs.setBool('remember_me', true);
+} else {
+  await prefs.remove('saved_phone');
+  await prefs.remove('saved_password');
+  await prefs.remove('remember_me');
+}
 
       setState(() => isLoading = false);
 
@@ -332,6 +349,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                         const SizedBox(height: 16),
+
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ForgotPasswordScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            "نسيت كلمة المرور؟",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
 
                         TextButton(
                           onPressed: () {

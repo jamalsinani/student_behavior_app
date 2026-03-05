@@ -5,7 +5,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/auth_service.dart';
+import 'teacher/teacher_home_screen.dart';
+import 'parent/parent_home_screen.dart';
 
 class SchoolHomeScreen extends StatefulWidget {
   const SchoolHomeScreen({super.key});
@@ -477,31 +480,112 @@ const SizedBox(height: 40),
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
           child: SizedBox(
             height: 55,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xff203a43),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                elevation: 10,
+             child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff203a43),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
               ),
-              onPressed: () {
+              elevation: 10,
+            ),
+
+            /// الدخول العادي (كما هو عندك)
+            onPressed: () async {
+
+              final prefs = await SharedPreferences.getInstance();
+
+              final savedPhone = prefs.getString('saved_phone');
+              final savedPassword = prefs.getString('saved_password');
+              final remember = prefs.getBool('remember_me') ?? false;
+
+              if (remember && savedPhone != null && savedPassword != null) {
+
+                try {
+
+                  final response = await AuthService.loginUser(
+                    phone: savedPhone,
+                    password: savedPassword,
+                  );
+
+                  final userData = response['data'];
+                  final List roles = userData['roles'] ?? [];
+
+                  if (roles.first == 'teacher') {
+
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TeacherHomeScreen(
+                          userData: {
+                            ...userData,
+                            ...?userData['teacher'],
+                          },
+                        ),
+                      ),
+                    );
+
+                  } else {
+
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ParentHomeScreen(
+                          userData: userData,
+                        ),
+                      ),
+                    );
+
+                  }
+
+                } catch (e) {
+
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LoginScreen(),
+                    ),
+                  );
+
+                }
+
+              } else {
+
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const LoginScreen(),
                   ),
                 );
-              },
-              child: const Text(
-                "الدخول إلى التطبيق",
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold),
+
+              }
+
+            },
+
+            /// ضغط مطوّل للمطور لمسح التذكر
+            onLongPress: () async {
+
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+              );
+
+            },
+
+            child: const Text(
+              "الدخول إلى التطبيق",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ),
+      ),
       ),
     );
   }
