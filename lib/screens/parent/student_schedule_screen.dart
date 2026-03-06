@@ -92,6 +92,8 @@ class _StudentScheduleScreenState extends State<StudentScheduleScreen> {
                   colors.primary,
                   colors.primaryContainer,
                 ],
+                begin: Alignment.centerRight,
+                end: Alignment.centerLeft,
               ),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(40),

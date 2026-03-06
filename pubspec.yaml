@@ -40,7 +40,7 @@ dependencies:
   another_flushbar: ^1.12.30
   url_launcher: ^6.2.5
   font_awesome_flutter: ^10.7.0
-
+  intl: ^0.18.1
   
 
 

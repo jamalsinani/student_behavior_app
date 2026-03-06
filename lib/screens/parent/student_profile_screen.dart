@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../parent/student_schedule_screen.dart';
+import '../parent/student_reports_screen.dart';
+
 
 class StudentProfileScreen extends StatelessWidget {
 
@@ -191,12 +193,24 @@ Padding(
       ),
 
       /// التقارير
-      _buildStudentBox(
-        context,
-        title: "التقارير",
-        icon: Icons.assessment,
-        color: const Color(0xff2196F3),
-      ),
+        _buildStudentBox(
+          context,
+          title: "التقارير",
+          icon: Icons.assessment,
+          color: const Color(0xff2196F3),
+          onTap: () {
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => StudentReportsScreen(
+                  student: student,
+                ),
+              ),
+            );
+
+          },
+        ),
 
       /// السجلات
       _buildStudentBox(

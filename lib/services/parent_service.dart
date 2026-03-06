@@ -73,5 +73,37 @@ class ParentService {
   }
 }
 
+static Future<List> getStudentReports({
+  required String studentId,
+}) async {
+
+  final uri = Uri.parse(
+    "$baseUrl/parent/student-reports-today",
+  ).replace(queryParameters: {
+    "student_id": studentId,
+  });
+
+  print("REPORTS URL: $uri");
+
+  final response = await http.get(uri);
+
+  print("REPORTS STATUS: ${response.statusCode}");
+  print("REPORTS BODY: ${response.body}");
+
+  if (response.statusCode == 200) {
+
+    final data = json.decode(response.body);
+
+    if (data['success'] == true) {
+      return List.from(data['data']);
+    }
+
+    return [];
+
+  } else {
+    throw Exception("فشل في جلب التقارير");
+  }
+}
+
 
 }
