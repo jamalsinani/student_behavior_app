@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'update_student_data_screen.dart';
+import 'student_certificate_screen.dart';
+import 'student_certificate_screen.dart';
+import 'suggestions_screen.dart';
 
 class ServicesScreen extends StatelessWidget {
 
@@ -216,18 +219,41 @@ class ServicesScreen extends StatelessWidget {
                   desc: "عرض شهادة الطالب الدراسية",
                   icon: Icons.workspace_premium,
                   color: Colors.green,
-                  onTap: () {},
-                ),
+                  onTap: () {
 
-                /// الشكاوي
-                buildServiceCard(
-                  context,
-                  title: "الشكاوي والملاحظات",
-                  desc: "إرسال ملاحظة أو شكوى للإدارة",
-                  icon: Icons.support_agent,
-                  color: Colors.orange,
-                  onTap: () {},
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StudentCertificateScreen(
+                            studentId: student["id"].toString(),
+                          ),
+                        ),
+                      );
+
+                    },
                 ),
+               
+                  /// المقترحات والملاحظات
+                  buildServiceCard(
+                    context,
+                    title: "مقترحات وملاحظات",
+                    desc: "إرسال ملاحظة أو مقترح لإدارة المدرسة",
+                    icon: Icons.support_agent,
+                    color: Colors.orange,
+                    onTap: () {
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SuggestionsScreen(
+                            studentId: student["id"].toString(),
+                          ),
+                        ),
+                      );
+
+                    },
+                  ),
+              
 
                 const SizedBox(height: 30),
               ],

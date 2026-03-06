@@ -152,5 +152,59 @@ static Future updateStudentData({
   return jsonDecode(res.body);
 }
 
+/// =============================
+/// جلب شهادات الطالب
+/// =============================
+static Future<Map<String, dynamic>> getStudentCertificates(String studentId) async {
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/parent/student-certificates"),
+    body: {
+      "student_id": studentId,
+    },
+  );
+
+  print("CERTIFICATES STATUS: ${response.statusCode}");
+  print("CERTIFICATES BODY: ${response.body}");
+
+  if (response.statusCode == 200) {
+
+    final data = json.decode(response.body);
+    return data;
+
+  } else {
+
+    throw Exception("فشل في جلب الشهادات");
+
+  }
+}
+
+/// =============================
+/// إرسال مقترح أو ملاحظة
+/// =============================
+static Future sendSuggestion({
+
+  required String studentId,
+  required String title,
+  required String message,
+  required String type,
+
+}) async {
+
+  final res = await http.post(
+    Uri.parse("$baseUrl/parent/send-suggestion"),
+    body: {
+
+      "student_id": studentId,
+      "title": title,
+      "message": message,
+      "type": type,
+
+    },
+  );
+
+  return jsonDecode(res.body);
+}
+
 
 }
