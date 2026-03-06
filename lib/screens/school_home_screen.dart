@@ -490,55 +490,179 @@ const SizedBox(height: 40),
               elevation: 10,
             ),
 
-            /// الدخول العادي (كما هو عندك)
-            onPressed: () async {
+          /// الدخول العادي (كما هو عندك)
+                onPressed: () async {
 
-              final prefs = await SharedPreferences.getInstance();
+                  final prefs = await SharedPreferences.getInstance();
 
-              final savedPhone = prefs.getString('saved_phone');
-              final savedPassword = prefs.getString('saved_password');
-              final remember = prefs.getBool('remember_me') ?? false;
+                  final savedPhone = prefs.getString('saved_phone');
+                  final savedPassword = prefs.getString('saved_password');
+                  final remember = prefs.getBool('remember_me') ?? false;
 
-              if (remember && savedPhone != null && savedPassword != null) {
+                  if (remember && savedPhone != null && savedPassword != null) {
 
-                try {
+                    try {
 
-                  final response = await AuthService.loginUser(
-                    phone: savedPhone,
-                    password: savedPassword,
-                  );
+                      final response = await AuthService.loginUser(
+                        phone: savedPhone,
+                        password: savedPassword,
+                      );
 
-                  final userData = response['data'];
-                  final List roles = userData['roles'] ?? [];
+                      final userData = response['data'];
+                      final List roles = userData['roles'] ?? [];
 
-                  if (roles.first == 'teacher') {
+                      /// إذا كان معلم وولي أمر
+                      if (roles.contains('teacher') && roles.contains('parent')) {
 
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TeacherHomeScreen(
-                          userData: {
-                            ...userData,
-                            ...?userData['teacher'],
+                        showModalBottomSheet(
+                          context: context,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(25),
+                            ),
+                          ),
+                          builder: (context) {
+
+                            return Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+
+                                  const Text(
+                                    "اختر طريقة الدخول",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 20),
+
+                                  /// زر المعلم
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 55,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+
+                                        Navigator.pop(context);
+
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => TeacherHomeScreen(
+                                              userData: {
+                                                ...userData,
+                                                ...?userData['teacher'],
+                                              },
+                                            ),
+                                          ),
+                                        );
+
+                                      },
+                                      child: const Text(
+                                        "الدخول كمعلم",
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 15),
+
+                                  /// زر ولي الأمر
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 55,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+
+                                        Navigator.pop(context);
+
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ParentHomeScreen(
+                                              userData: userData,
+                                            ),
+                                          ),
+                                        );
+
+                                      },
+                                      child: const Text(
+                                        "الدخول كولي أمر",
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                            );
+
                           },
+                        );
+                      }
+                      /// إذا كان معلم فقط
+                      else if (roles.contains('teacher')) {
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TeacherHomeScreen(
+                              userData: {
+                                ...userData,
+                                ...?userData['teacher'],
+                              },
+                            ),
+                          ),
+                        );
+
+                      }
+
+                      /// غير ذلك ولي أمر
+                      else {
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ParentHomeScreen(
+                              userData: userData,
+                            ),
+                          ),
+                        );
+
+                      }
+
+                    } catch (e) {
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LoginScreen(),
                         ),
-                      ),
-                    );
+                      );
+
+                    }
 
                   } else {
 
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ParentHomeScreen(
-                          userData: userData,
-                        ),
+                        builder: (_) => const LoginScreen(),
                       ),
                     );
 
                   }
 
-                } catch (e) {
+                },
+
+                /// ضغط مطوّل للمطور لمسح التذكر
+                onLongPress: () async {
+
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
 
                   Navigator.pushReplacement(
                     context,
@@ -547,35 +671,9 @@ const SizedBox(height: 40),
                     ),
                   );
 
-                }
+                },
+                          
 
-              } else {
-
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const LoginScreen(),
-                  ),
-                );
-
-              }
-
-            },
-
-            /// ضغط مطوّل للمطور لمسح التذكر
-            onLongPress: () async {
-
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const LoginScreen(),
-                ),
-              );
-
-            },
 
             child: const Text(
               "الدخول إلى التطبيق",
@@ -585,10 +683,13 @@ const SizedBox(height: 40),
               ),
             ),
           ),
+
         ),
       ),
       ),
+
     );
+
   }
 
   Widget _sectionTitle(String title) {
