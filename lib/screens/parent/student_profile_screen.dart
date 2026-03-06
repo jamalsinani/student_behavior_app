@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../parent/student_schedule_screen.dart';
 import '../parent/student_reports_screen.dart';
+import '../parent/services_screen.dart';
+import 'student_records_screen.dart';
 
 
 class StudentProfileScreen extends StatelessWidget {
@@ -214,27 +216,48 @@ Padding(
 
       /// السجلات
       _buildStudentBox(
-        context,
-        title: "السجلات",
-        icon: Icons.menu_book,
-        color: const Color(0xffFF9800),
-      ),
+            context,
+            title: "السجلات",
+            icon: Icons.menu_book,
+            color: const Color(0xffFF9800),
+            onTap: () {
 
-      /// الخدمات
-      _buildStudentBox(
-        context,
-        title: "الخدمات",
-        icon: Icons.miscellaneous_services,
-        color: const Color(0xff9C27B0),
-      ),
-    ],
-  ),
-),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StudentRecordsScreen(
+                    student: student,
+                  ),
+                ),
+              );
 
-        ],
-      ),
-    );
-  }
+            },
+          ),
+                /// الخدمات
+                    _buildStudentBox(
+                      context,
+                      title: "الخدمات",
+                      icon: Icons.miscellaneous_services,
+                      color: const Color(0xff9C27B0),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ServicesScreen(
+                              student: student,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    ],
+                  ),
+                ),
+
+                ],
+              ),
+            );
+          }
 
   /// =================================
 /// كرت خدمات الطالب
@@ -299,6 +322,8 @@ Widget _buildStudentBox(
       ),
     ),
   );
+
 }
+
 
 }

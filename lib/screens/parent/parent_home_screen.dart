@@ -154,79 +154,38 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 ),
 
                 /// زر الخروج
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(40),
-                    onTap: () {
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(40),
+                      onTap: () {
 
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SchoolHomeScreen(),
-                        ),
-                        (route) => false,
-                      );
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SchoolHomeScreen(),
+                          ),
+                          (route) => false,
+                        );
 
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.15),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.red.withOpacity(0.35),
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.35),
+                          ),
                         ),
-                      ),
-                      child: const Icon(
-                        Icons.logout_rounded,
-                        color: Colors.red,
-                        size: 22,
+                        child: const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
                       ),
                     ),
-                  ),
-                )
-
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          /// ================= الملاحظات =================
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.all(16),
-
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                )
-              ],
-            ),
-
-            child: Row(
-              children: [
-
-                Icon(
-                  Icons.notifications,
-                  color: colors.primary,
-                ),
-
-                const SizedBox(width: 10),
-
-                const Text(
-                  "الملاحظات",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
+                  )
               ],
             ),
           ),
@@ -234,111 +193,134 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
           const SizedBox(height: 20),
 
           /// ================= قائمة الأبناء =================
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: students.length,
-              itemBuilder: (context, index) {
+Expanded(
+  child: isLoading
+      ? const Center(child: CircularProgressIndicator())
+      : ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: students.length,
+          itemBuilder: (context, index) {
 
-                final student = students[index];
+            final student = students[index];
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
+            /// ألوان البطاقات
+            List<List<Color>> gradients = [  
+              [const Color(0xffff9966), const Color(0xffff5e62)],
+              [const Color(0xff4facfe), const Color(0xff00f2fe)],
+              [const Color(0xffa18cd1), const Color(0xfffbc2eb)],
+              [const Color(0xff43e97b), const Color(0xff38f9d7)],
+            ];
 
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(18),
+            final gradient = gradients[index % gradients.length];
 
-                    onTap: () {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
 
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => StudentProfileScreen(
-                            student: student,
-                          ),
-                        ),
-                      );
+              child: InkWell(
+                borderRadius: BorderRadius.circular(22),
 
-                    },
+                onTap: () {
 
-                    child: Container(
-
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 16,
-                      ),
-
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 12,
-                          )
-                        ],
-                      ),
-
-                      child: Row(
-                        children: [
-
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: colors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.school,
-                              color: colors.primary,
-                            ),
-                          ),
-
-                          const SizedBox(width: 15),
-
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-
-                                Text(
-                                  student['name'] ?? "",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 4),
-
-                                Text(
-                                  "الصف ${student['class'] ?? '-'} - الشعبة ${student['section'] ?? '-'}",
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-
-                              ],
-                            ),
-                          ),
-
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                            color: colors.primary,
-                          )
-
-                        ],
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => StudentProfileScreen(
+                        student: student,
                       ),
                     ),
-                  ),
-                );
+                  );
 
-              },
-            ),
-          ),
+                },
+
+                child: Container(
+
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+
+                  decoration: BoxDecoration(
+
+                    gradient: LinearGradient(
+                      colors: gradient,
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+
+                    borderRadius: BorderRadius.circular(22),
+
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradient.first.withOpacity(0.35),
+                        blurRadius: 16,
+                        offset: const Offset(0,8),
+                      )
+                    ],
+                  ),
+
+                  child: Row(
+                    children: [
+
+                      /// أيقونة الطالب
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.school,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      /// معلومات الطالب
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            Text(
+                              student['name'] ?? "",
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            Text(
+                              "الصف ${student['class'] ?? '-'}  |  الشعبة ${student['section'] ?? '-'}",
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+
+                          ],
+                        ),
+                      ),
+
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                        color: Colors.white,
+                      )
+
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+          },
+        ),
+),
 
         ],
       ),

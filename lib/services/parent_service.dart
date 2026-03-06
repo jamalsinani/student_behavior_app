@@ -105,5 +105,52 @@ static Future<List> getStudentReports({
   }
 }
 
+static Future getStudentInfo(String studentId) async {
+
+  final res = await http.get(
+    Uri.parse("$baseUrl/parent/student-info?student_id=$studentId"),
+  );
+
+  return jsonDecode(res.body);
+}
+
+static Future updateStudentData({
+
+  required String id,
+  required String parentName,
+  required String phone,
+  required String phoneAlt,
+  required String relation,
+  required String job,
+  required String area,
+  required String transport,
+  required String driverPhone,
+  required String talent,
+  required String diseases,
+
+}) async {
+
+  final res = await http.post(
+    Uri.parse("$baseUrl/parent/update-student-data"),
+    body: {
+
+      "id": id,
+      "parent_name": parentName,
+      "guardian_phone": phone,
+      "guardian_phone_alt": phoneAlt,
+      "guardian_relation": relation,
+      "guardian_job": job,
+      "residence_area": area,
+      "transport_type": transport,
+      "driver_phone": driverPhone,
+      "talent": talent,
+      "diseases": diseases,
+
+    },
+  );
+
+  return jsonDecode(res.body);
+}
+
 
 }
