@@ -30,24 +30,28 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
   /// جلب التقارير
   Future loadReports() async {
 
-    try {
+  try {
 
-      final data = await ParentService.getStudentReports(
-        studentId: widget.student["id"].toString(),
-      );
+    final data = await ParentService.getStudentReportsHistory(
+      studentId: widget.student["id"].toString(),
+    );
 
-      reports = data;
+    print("DATA FROM API:");
+    print(data);
 
-      groupReportsByDate();
+    reports = data;
 
-    } catch (e) {
-      print(e);
-    }
+    groupReportsByDate();
 
-    setState(() {
-      loading = false;
-    });
+  } catch (e) {
+    print("ERROR:");
+    print(e);
   }
+
+  setState(() {
+    loading = false;
+  });
+}
 
   /// تجميع التقارير حسب التاريخ
   void groupReportsByDate() {

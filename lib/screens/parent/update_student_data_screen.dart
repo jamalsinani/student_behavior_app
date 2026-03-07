@@ -5,10 +5,12 @@ import 'package:another_flushbar/flushbar.dart';
 class UpdateStudentDataScreen extends StatefulWidget {
 
   final String studentId;
+  final String userId;
 
   const UpdateStudentDataScreen({
     super.key,
     required this.studentId,
+    required this.userId,
   });
 
   @override
@@ -40,9 +42,29 @@ class _UpdateStudentDataScreenState extends State<UpdateStudentDataScreen> {
 
   Future loadStudent() async {
 
+  try {
+
     final res = await ParentService.getStudentInfo(widget.studentId);
 
-    student = res["student"];
+    print("STUDENT DATA: $res");
+
+    if (res == null || res["status"] != true) {
+
+      Flushbar(
+        message: "فشل في تحميل بيانات الطالب",
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.red,
+        flushbarPosition: FlushbarPosition.TOP,
+      ).show(context);
+
+      setState(() {
+        loading = false;
+      });
+
+      return;
+    }
+
+    student = res["student"] ?? {};
 
     parentName.text = student["parent_name"] ?? "";
     phone.text = student["guardian_phone"] ?? "";
@@ -58,12 +80,29 @@ class _UpdateStudentDataScreenState extends State<UpdateStudentDataScreen> {
     setState(() {
       loading = false;
     });
+
+  } catch (e) {
+
+    print("LOAD STUDENT ERROR: $e");
+
+    Flushbar(
+      message: "حدث خطأ أثناء تحميل البيانات",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.red,
+      flushbarPosition: FlushbarPosition.TOP,
+    ).show(context);
+
+    setState(() {
+      loading = false;
+    });
   }
+}
 
   Future save() async {
 
     final res = await ParentService.updateStudentData(
       id: widget.studentId,
+      userId: widget.userId,
       parentName: parentName.text,
       phone: phone.text,
       phoneAlt: phoneAlt.text,

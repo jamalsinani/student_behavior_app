@@ -226,6 +226,7 @@ Expanded(
                     MaterialPageRoute(
                       builder: (_) => StudentProfileScreen(
                         student: student,
+                        userId: widget.userData['id'].toString(),
                       ),
                     ),
                   );

@@ -676,7 +676,7 @@ const SizedBox(height: 40),
 
 
             child: const Text(
-              "الدخول إلى التطبيق",
+              "تسجيل الدخول",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

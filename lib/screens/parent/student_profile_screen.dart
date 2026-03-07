@@ -8,10 +8,12 @@ import 'student_records_screen.dart';
 class StudentProfileScreen extends StatelessWidget {
 
   final Map<String, dynamic> student;
+  final String userId;
 
   const StudentProfileScreen({
     super.key,
     required this.student,
+    required this.userId,
   });
 
   @override
@@ -245,6 +247,7 @@ Padding(
                           MaterialPageRoute(
                             builder: (context) => ServicesScreen(
                               student: student,
+                              userId: userId,
                             ),
                           ),
                         );

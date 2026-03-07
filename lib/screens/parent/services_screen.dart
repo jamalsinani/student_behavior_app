@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'update_student_data_screen.dart';
-import 'student_certificate_screen.dart';
 import 'student_certificate_screen.dart';
 import 'suggestions_screen.dart';
 
 class ServicesScreen extends StatelessWidget {
 
   final Map student;
+  final String userId;
 
   const ServicesScreen({
     super.key,
     required this.student,
+    required this.userId,
   });
 
   /// بطاقة الخدمة
@@ -205,6 +204,7 @@ class ServicesScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => UpdateStudentDataScreen(
                         studentId: student["id"].toString(),
+                        userId: userId,
                       ),
                     ),
                   );

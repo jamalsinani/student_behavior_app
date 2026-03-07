@@ -111,12 +111,15 @@ static Future getStudentInfo(String studentId) async {
     Uri.parse("$baseUrl/parent/student-info?student_id=$studentId"),
   );
 
+  print("STUDENT INFO STATUS: ${res.statusCode}");
+  print("STUDENT INFO BODY: ${res.body}");
+
   return jsonDecode(res.body);
 }
 
 static Future updateStudentData({
-
   required String id,
+  required String userId,
   required String parentName,
   required String phone,
   required String phoneAlt,
@@ -135,6 +138,7 @@ static Future updateStudentData({
     body: {
 
       "id": id,
+      "user_id": userId,
       "parent_name": parentName,
       "guardian_phone": phone,
       "guardian_phone_alt": phoneAlt,
@@ -206,5 +210,39 @@ static Future sendSuggestion({
   return jsonDecode(res.body);
 }
 
+/// =============================
+/// جلب سجل التقارير (الأرشيف)
+/// =============================
+static Future<List> getStudentReportsHistory({
+  required String studentId,
+}) async {
+
+  final uri = Uri.parse(
+    "$baseUrl/parent/student-reports-history",
+  ).replace(queryParameters: {
+    "student_id": studentId,
+  });
+
+  print("REPORT HISTORY URL: $uri");
+
+  final response = await http.get(uri);
+
+  print("REPORT HISTORY STATUS: ${response.statusCode}");
+  print("REPORT HISTORY BODY: ${response.body}");
+
+  if (response.statusCode == 200) {
+
+    final data = json.decode(response.body);
+
+    if (data['success'] == true) {
+      return List.from(data['data']);
+    }
+
+    return [];
+
+  } else {
+    throw Exception("فشل في جلب السجلات");
+  }
+}
 
 }

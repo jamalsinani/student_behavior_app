@@ -144,6 +144,100 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                 const SizedBox(height: 20),
 
+                /// 📢 تنبيه للمستخدم
+Container(
+  width: double.infinity,
+  padding: const EdgeInsets.all(16),
+  margin: const EdgeInsets.only(top: 10),
+  decoration: BoxDecoration(
+    gradient: LinearGradient(
+      colors: [
+        Colors.orange.shade100,
+        Colors.orange.shade50,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: Colors.orange.shade300),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.orange.withOpacity(0.2),
+        blurRadius: 10,
+        offset: const Offset(0,4),
+      )
+    ],
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+
+      Row(
+        children: const [
+          Icon(Icons.info_outline, color: Colors.orange),
+          SizedBox(width: 8),
+          Text(
+            "تنبيه مهم",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.orange,
+            ),
+          ),
+        ],
+      ),
+
+      const SizedBox(height: 10),
+
+      const Text(
+        "بعد إرسال الطلب  سيتم تنفيذ الإجراءات التالية:",
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+
+      const SizedBox(height: 10),
+
+      const Row(
+        children: [
+          Icon(Icons.check_circle, size: 18, color: Colors.green),
+          SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              "يتم إرسال الطلب لإدارة المدرسة للمراجعة.",
+            ),
+          ),
+        ],
+      ),
+
+      const SizedBox(height: 6),
+
+      const Row(
+        children: [
+          Icon(Icons.check_circle, size: 18, color: Colors.green),
+          SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              "سيتم إنشاء كلمة مرور جديدة للحساب.",
+            ),
+          ),
+        ],
+      ),
+
+      const SizedBox(height: 6),
+
+      const Row(
+        children: [
+          Icon(Icons.check_circle, size: 18, color: Colors.green),
+          SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              "سيتم إرسال كلمة المرور الجديدة عبر واتساب الرقم المسجل في النظام.",
+            ),
+          ),
+        ],
+      ),
+
+    ],
+  ),
+),
+
                 /// 🔙 العودة
                 TextButton(
                   onPressed: () {

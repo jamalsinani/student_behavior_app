@@ -22,10 +22,17 @@ class _StudentScheduleScreenState extends State<StudentScheduleScreen> {
     loadSchedule();
   }
 
-  /// اليوم المختار
-  int selectedDay = DateTime.now().weekday == 7
-      ? 1
-      : DateTime.now().weekday + 1;
+  /// اليوم المختار (الأحد → الخميس فقط)
+int selectedDay = () {
+  int day = DateTime.now().weekday;
+
+  // الجمعة أو السبت → ابدأ من الأحد
+  if (day == 5 || day == 6) {
+    return 1;
+  }
+
+  return day;
+}();
 
   /// أيام الأسبوع
   final List<Map<String, dynamic>> days = [
