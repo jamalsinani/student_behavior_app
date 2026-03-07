@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 import '../teacher/teacher_home_screen.dart';
 import '../parent/parent_home_screen.dart';
+import '../school_admin_screen.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -53,55 +54,150 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 
-  void login() async {
+      void login() async {
 
-    if (phoneController.text.isEmpty || passwordController.text.isEmpty) {
-      Flushbar(
-      message: "يرجى إدخال جميع البيانات",
-      duration: const Duration(seconds: 3),
-      flushbarPosition: FlushbarPosition.TOP,
-      backgroundColor: Colors.red,
-      margin: const EdgeInsets.all(12),
-      borderRadius: BorderRadius.circular(12),
-      icon: const Icon(Icons.error_outline, color: Colors.white),
-      ).show(context);
-      return;
-    }
+      if (phoneController.text.isEmpty || passwordController.text.isEmpty) {
+        Flushbar(
+          message: "يرجى إدخال جميع البيانات",
+          duration: const Duration(seconds: 3),
+          flushbarPosition: FlushbarPosition.TOP,
+          backgroundColor: Colors.red,
+          margin: const EdgeInsets.all(12),
+          borderRadius: BorderRadius.circular(12),
+          icon: const Icon(Icons.error_outline, color: Colors.white),
+        ).show(context);
+        return;
+      }
 
-    setState(() => isLoading = true);
+      setState(() => isLoading = true);
 
-    try {
+      try {
 
-      final response = await AuthService.loginUser(
-        phone: phoneController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+        final response = await AuthService.loginUser(
+          phone: phoneController.text.trim(),
+          password: passwordController.text.trim(),
+        );
 
-      final userData = response['data'];
-      final List roles = userData['roles'] ?? [];
+        final userData = response['data'];
+        final List roles = userData['roles'] ?? [];
 
-      /// ✅ حفظ التذكر
-      final prefs = await SharedPreferences.getInstance();
+        final prefs = await SharedPreferences.getInstance();
 
-/// حفظ حالة تسجيل الدخول
-await prefs.setBool('is_logged_in', true);
+        await prefs.setBool('is_logged_in', true);
 
-/// حفظ التذكر
-if (rememberMe) {
-  await prefs.setString('saved_phone', phoneController.text.trim());
-  await prefs.setString('saved_password', passwordController.text.trim());
-  await prefs.setBool('remember_me', true);
-} else {
-  await prefs.remove('saved_phone');
-  await prefs.remove('saved_password');
-  await prefs.remove('remember_me');
-}
+        if (rememberMe) {
+          await prefs.setString('saved_phone', phoneController.text.trim());
+          await prefs.setString('saved_password', passwordController.text.trim());
+          await prefs.setBool('remember_me', true);
+        } else {
+          await prefs.remove('saved_phone');
+          await prefs.remove('saved_password');
+          await prefs.remove('remember_me');
+        }
 
-      setState(() => isLoading = false);
+        setState(() => isLoading = false);
 
-      if (roles.length == 1) {
+        /// ادمن
+        if (roles.contains('admin')) {
 
-        if (roles.first == 'teacher') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const SchoolAdminScreen(),
+            ),
+            (route) => false,
+          );
+
+        }
+
+        /// معلم وولي امر
+        else if (roles.contains('teacher') && roles.contains('parent')) {
+
+          showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
+            ),
+            builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+
+                    const Text(
+                      "اختر طريقة الدخول",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: () {
+
+                          Navigator.pop(context);
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TeacherHomeScreen(
+                                userData: {
+                                  ...userData,
+                                  ...?userData['teacher'],
+                                },
+                              ),
+                            ),
+                            (route) => false,
+                          );
+
+                        },
+                        child: const Text("الدخول كمعلم"),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: () {
+
+                          Navigator.pop(context);
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ParentHomeScreen(
+                                userData: userData,
+                              ),
+                            ),
+                            (route) => false,
+                          );
+
+                        },
+                        child: const Text("الدخول كولي أمر"),
+                      ),
+                    ),
+
+                  ],
+                ),
+              );
+            },
+          );
+
+        }
+
+        /// معلم فقط
+        else if (roles.contains('teacher')) {
 
           Navigator.pushAndRemoveUntil(
             context,
@@ -116,7 +212,10 @@ if (rememberMe) {
             (route) => false,
           );
 
-        } else {
+        }
+
+        /// ولي امر فقط
+        else {
 
           Navigator.pushAndRemoveUntil(
             context,
@@ -127,104 +226,26 @@ if (rememberMe) {
             ),
             (route) => false,
           );
+
         }
+
+      } catch (e) {
+
+        setState(() => isLoading = false);
+
+        Flushbar(
+          message: e.toString(),
+          duration: const Duration(seconds: 3),
+          flushbarPosition: FlushbarPosition.TOP,
+          backgroundColor: Colors.red,
+          margin: const EdgeInsets.all(12),
+          borderRadius: BorderRadius.circular(12),
+          icon: const Icon(Icons.error_outline, color: Colors.white),
+        ).show(context);
+
       }
 
-      else if (roles.length > 1) {
-
-        showModalBottomSheet(
-          context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(25),
-            ),
-          ),
-          builder: (context) {
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-
-                  const Text(
-                    "اختر طريقة الدخول",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  ...roles.map<Widget>((role) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-
-                            if (role == 'teacher') {
-
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => TeacherHomeScreen(
-                                    userData: {
-                                      ...userData,
-                                      ...?userData['teacher'],
-                                    },
-                                  ),
-                                ),
-                                (route) => false,
-                              );
-
-                            } else {
-
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ParentHomeScreen(
-                                    userData: userData,
-                                  ),
-                                ),
-                                (route) => false,
-                              );
-                            }
-                          },
-                          child: Text(
-                            role == 'teacher'
-                                ? "الدخول كمعلم"
-                                : "الدخول كولي أمر",
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
-            );
-          },
-        );
-      }
-
-    } catch (e) {
-
-      setState(() => isLoading = false);
-
-      Flushbar(
-      message: e.toString(),
-      duration: const Duration(seconds: 3),
-      flushbarPosition: FlushbarPosition.TOP,
-      backgroundColor: Colors.red,
-      margin: const EdgeInsets.all(12),
-      borderRadius: BorderRadius.circular(12),
-      icon: const Icon(Icons.error_outline, color: Colors.white),
-    ).show(context);
     }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -418,5 +439,7 @@ if (rememberMe) {
         ),
         ),
         );
+        
           }
 }
+          

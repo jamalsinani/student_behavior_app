@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import 'teacher/teacher_home_screen.dart';
 import 'parent/parent_home_screen.dart';
+import 'school_admin_screen.dart';
 
 class SchoolHomeScreen extends StatefulWidget {
   const SchoolHomeScreen({super.key});
@@ -603,7 +604,19 @@ const SizedBox(height: 40),
                           },
                         );
                       }
-                      /// إذا كان معلم فقط
+                      /// إذا كان ادمن
+                      else if (roles.contains('admin')) {
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SchoolAdminScreen(),
+                          ),
+                        );
+
+                      }
+
+                      /// إذا كان معلم
                       else if (roles.contains('teacher')) {
 
                         Navigator.pushReplacement(
