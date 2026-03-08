@@ -26,12 +26,19 @@ class _StudentScheduleScreenState extends State<StudentScheduleScreen> {
 int selectedDay = () {
   int day = DateTime.now().weekday;
 
-  // الجمعة أو السبت → ابدأ من الأحد
-  if (day == 5 || day == 6) {
+  // الجمعة أو السبت → يرجع الأحد
+  if (day == DateTime.friday || day == DateTime.saturday) {
     return 1;
   }
 
-  return day;
+  // تحويل نظام الأيام ليبدأ من الأحد
+  if (day == DateTime.sunday) return 1;
+  if (day == DateTime.monday) return 2;
+  if (day == DateTime.tuesday) return 3;
+  if (day == DateTime.wednesday) return 4;
+  if (day == DateTime.thursday) return 5;
+
+  return 1;
 }();
 
   /// أيام الأسبوع
