@@ -233,7 +233,7 @@ static Future<List<dynamic>> getTeacherArchive({
 // ===============================
 // 🔴 تسجيل غياب طالب
 // ===============================
-static Future<bool> addAbsence({
+static Future<Map<String, dynamic>> addAbsence({
   required int studentId,
   required String studentName,
   required int schoolId,
@@ -242,7 +242,9 @@ static Future<bool> addAbsence({
   required int periodNumber,
   required String absenceDate,
 }) async {
+
   try {
+
     final response = await http.post(
       Uri.parse("$baseUrl/teacher/add-absence"),
       headers: {
@@ -264,11 +266,16 @@ static Future<bool> addAbsence({
 
     final data = json.decode(response.body);
 
-    return data['status'] == true;
+    return data;
 
   } catch (e) {
+
     print("🔴 ERROR: $e");
-    return false;
+
+    return {
+      "status": false,
+      "message": "خطأ في الاتصال بالسيرفر"
+    };
   }
 }
 
@@ -372,7 +379,9 @@ static Future<Map<String, dynamic>> sendClassMessage({
     },
   );
 
+  print("SEND CLASS MESSAGE STATUS: ${response.statusCode}");
+  print("SEND CLASS MESSAGE BODY: ${response.body}");
+
   return jsonDecode(response.body);
 }
-
 }

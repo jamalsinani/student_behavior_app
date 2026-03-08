@@ -178,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               role == 'teacher' ? "معلم" : "ولي أمر";
 
           students = result['students'] ?? [];
-          isAddingRole = true;
+          isAddingRole = false;
 
           Navigator.pop(context);
 
@@ -228,12 +228,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
 
       final result = await AuthService.registerUser(
+        
         name: fullName,
         phone: phoneController.text.trim(),
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
         type: accountTypeValue,
       );
+      
+      print("REGISTER RESULT: $result");
 
       setState(() => isLoading = false);
 
@@ -247,7 +250,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     } catch (e) {
       setState(() => isLoading = false);
-
+       print("REGISTER ERROR: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("فشل إنشاء الحساب")),
       );
@@ -542,17 +545,21 @@ if (step == 3) ...[
   const SizedBox(height: 24),
 
   SizedBox(
-    width: double.infinity,
-    height: 55,
-    child: ElevatedButton(
-      onPressed: isLoading ? null : registerAccount,
-      child: isLoading
-          ? const CircularProgressIndicator(color: Colors.white)
-          : const Text("إنشاء الحساب"),
-    ),
+  width: double.infinity,
+  height: 55,
+  child: ElevatedButton(
+    onPressed: isLoading
+        ? null
+        : () {
+            print("BUTTON PRESSED");
+            registerAccount();
+          },
+    child: isLoading
+        ? const CircularProgressIndicator(color: Colors.white)
+        : const Text("إنشاء الحساب"),
   ),
+),
 ],
-
 
 
 /// ==========================

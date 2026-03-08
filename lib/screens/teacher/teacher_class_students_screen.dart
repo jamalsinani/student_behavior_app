@@ -414,7 +414,7 @@ setState(() {
     // ===============================
     // تسجيل غياب جديد
     // ===============================
-    final success = await TeacherStudentService.addAbsence(
+    final result = await TeacherStudentService.addAbsence(
       studentId: studentId,
       studentName: student['name'],
       schoolId: schoolId,
@@ -424,18 +424,21 @@ setState(() {
       absenceDate: formattedDate,
     );
 
-    if (success) {
+    if (result['status'] == true) {
+
       setState(() {
         absentStudents.add(studentId);
       });
 
       _showTopMessage(
-        message: "تم تسجيل الغياب بنجاح",
+        message: result['message'] ?? "تم تسجيل الغياب بنجاح",
         isSuccess: true,
       );
+
     } else {
+
       _showTopMessage(
-        message: "هذا الطالب مسجل مسبقًا",
+        message: result['message'] ?? "فشل تسجيل الغياب",
         isSuccess: false,
       );
     }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthService {
   static const String baseUrl = "https://abuobaida-edu.com/api";
@@ -26,6 +27,7 @@ class AuthService {
   required String password,
   required String type,
 }) async {
+
   final response = await http.post(
     Uri.parse("$baseUrl/register"),
     body: {
@@ -37,11 +39,9 @@ class AuthService {
     },
   );
 
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
-  } else {
-    throw Exception("Register failed");
-  }
+  final data = jsonDecode(response.body);
+
+  return data;
 }
 
 static Future<Map<String, dynamic>> loginUser({
@@ -136,5 +136,24 @@ static Future<Map<String, dynamic>> forgotPassword({
   }
 }
 
+static Future<void> sendFcmToken(int userId) async {
+
+  String? token = await FirebaseMessaging.instance.getToken();
+
+  print("USER ID: $userId");
+  print("FCM TOKEN: $token");
+
+  if (token == null) return;
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/save-fcm-token"),
+    body: {
+      "user_id": userId.toString(),
+      "fcm_token": token,
+    },
+  );
+
+  print("SERVER RESPONSE: ${response.body}");
+}
 
 }

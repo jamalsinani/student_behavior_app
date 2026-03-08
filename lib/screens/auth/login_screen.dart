@@ -79,11 +79,15 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         final userData = response['data'];
+        final int userId = userData['id'];
         final List roles = userData['roles'] ?? [];
 
         final prefs = await SharedPreferences.getInstance();
 
         await prefs.setBool('is_logged_in', true);
+
+        print("LOGIN USER ID: $userId");
+        await AuthService.sendFcmToken(userId);
 
         if (rememberMe) {
           await prefs.setString('saved_phone', phoneController.text.trim());
