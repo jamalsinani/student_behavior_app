@@ -349,4 +349,30 @@ static Future<List<int>> getTodayAbsences({
   }
 }
 
+static Future<Map<String, dynamic>> sendClassMessage({
+  required int schoolId,
+  required String section,
+  required String grade,
+  required String subjectName,
+  required String teacherPhone,
+  required String message,
+}) async {
+
+  final url = Uri.parse("$baseUrl/teacher/send-class-message");
+
+  final response = await http.post(
+    url,
+    body: {
+      "school_id": schoolId.toString(),
+      "section": section,
+      "grade": grade,
+      "subject_name": subjectName,
+      "teacher_phone": teacherPhone,
+      "message": message,
+    },
+  );
+
+  return jsonDecode(response.body);
+}
+
 }

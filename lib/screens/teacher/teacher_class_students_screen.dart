@@ -168,139 +168,154 @@ setState(() {
   }
 
   Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(
-        top: 65,
-        right: 20,
-        left: 20,
-        bottom: 40,
-      ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.teacherPrimary,
-            AppColors.teacherSecondary,
-          ],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(50),
-          bottomRight: Radius.circular(50),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          Row(
-            children: [
-              Material(
-  color: Colors.transparent,
-  child: InkWell(
-    borderRadius: BorderRadius.circular(40),
-    onTap: () => Navigator.pop(context),
-    child: Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.only(
+      top: 65,
+      right: 20,
+      left: 20,
+      bottom: 40,
+    ),
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          AppColors.teacherPrimary,
+          AppColors.teacherSecondary,
         ],
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
       ),
-      child: const Icon(
-        Icons.arrow_back,
-        color: Colors.white,
-        size: 22,
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(50),
+        bottomRight: Radius.circular(50),
       ),
     ),
-  ),
-),
-              const SizedBox(width: 10),
-              const Text(
-                "طلاب الفصل",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+
+        Row(
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(40),
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.18),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
-            ],
-          ),
-
-          const SizedBox(height: 15),
-
-          Text(
-            widget.classData['subject_name'],
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
             ),
-          ),
 
-          const SizedBox(height: 6),
+            const SizedBox(width: 10),
 
-          Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-
-    Text(
-      "الصف ${widget.classData['section']} - الشعبة ${widget.classData['grade']}",
-      style: const TextStyle(
-        color: Colors.white70,
-      ),
-    ),
-
-    Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+            const Text(
+              "طلاب الفصل",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Row(
-        children: [
 
-          const Icon(
-            Icons.groups_rounded,
-            size: 16,
+        const SizedBox(height: 15),
+
+        Text(
+          widget.classData['subject_name'],
+          style: const TextStyle(
             color: Colors.white,
+            fontSize: 18,
           ),
+        ),
 
-          const SizedBox(width: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
 
-          Text(
-            "${students.length} طالب",
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+            Text(
+              "الصف ${widget.classData['section']} - الشعبة ${widget.classData['grade']}",
+              style: const TextStyle(
+                color: Colors.white70,
+              ),
             ),
+
+            // زر إرسال للكل
+            InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () {
+                 _showSendToAllDialog();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: const [
+
+                    Icon(
+                      Icons.send_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+
+                    SizedBox(width: 6),
+
+                    Text(
+                      "إرسال للكل",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // عدد الطلاب تحت الصف
+        Text(
+          "عدد الطلاب: ${students.length}",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
           ),
-        ],
-      ),
+        ),
+      ],
     ),
-  ],
-),
-        ],
-      ),
-    );
-  }
- 
+  );
+}
 
   Widget _buildStudentCard(Map<String, dynamic> student) {
 
@@ -951,4 +966,145 @@ void _showAddNoteDialog(Map<String, dynamic> student) {
   );
 }
 
+void _showSendToAllDialog() {
+
+  final messageController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              const Text(
+                "إرسال رسالة لكل الطلاب",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                "سيتم إرسال الرسالة إلى جميع طلاب الفصل",
+                style: TextStyle(color: Colors.grey),
+              ),
+
+              const SizedBox(height: 20),
+
+              TextField(
+                controller: messageController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: "اكتب الرسالة هنا",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: AppColors.teacherPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  onPressed: () async {
+
+                    if (messageController.text.isEmpty) {
+                      _showTopMessage(
+                        message: "اكتب الرسالة أولاً",
+                        isSuccess: false,
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(context);
+
+                    await _sendMessageToAll(messageController.text);
+                  },
+                  child: const Text(
+                    "إرسال الرسالة",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
+  
+
+
+
+  Future<void> _sendMessageToAll(String message) async {
+
+  try {
+
+    final schoolIdRaw = widget.userData?['school_id'];
+    final schoolId = schoolIdRaw is int
+        ? schoolIdRaw
+        : int.tryParse(schoolIdRaw?.toString() ?? "1") ?? 1;
+
+    final teacherPhone =
+        widget.userData?['phone']?.toString() ?? "";
+
+    final response = await TeacherStudentService.sendClassMessage(
+      schoolId: schoolId,
+      section: widget.classData['section'],
+      grade: widget.classData['grade'],
+      subjectName: widget.classData['subject_name'],
+      teacherPhone: teacherPhone,
+      message: message,
+    );
+
+    if (response['status'] == true) {
+
+      final count = response['count'] ?? 0;
+
+      _showTopMessage(
+        message: "تم إرسال الرسالة بنجاح لعدد $count طالب",
+        isSuccess: true,
+      );
+
+    } else {
+
+      _showTopMessage(
+        message: "فشل إرسال الرسالة",
+        isSuccess: false,
+      );
+    }
+
+  } catch (e) {
+
+    print("SEND MESSAGE ERROR: $e");
+
+    _showTopMessage(
+      message: "حدث خطأ أثناء الإرسال",
+      isSuccess: false,
+    );
+  }
+}
+
+
+    }

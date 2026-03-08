@@ -319,7 +319,7 @@ Padding(
   child: Align(
     alignment: Alignment.centerRight,
     child: Text(
-      "آخر الأخبار",
+      "أخبار المدرسة",
       style: const TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
