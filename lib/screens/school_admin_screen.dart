@@ -317,11 +317,26 @@ Padding(
                                               style: const TextStyle(fontSize: 13, color: Colors.white),
                                             ),
 
-                                            Text(
-                                              "الحصة ${item["target_period"] ?? "-"}",
-                                              style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.white70),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+
+                                                Text(
+                                                  "الحصة ${item["target_period"] ?? "-"}",
+                                                  style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.white70),
+                                                ),
+
+                                                if (item["target_date"] != null)
+                                                  Text(
+                                                    item["target_date"],
+                                                    style: const TextStyle(
+                                                        fontSize: 11,
+                                                        color: Colors.white70),
+                                                  ),
+
+                                              ],
                                             ),
                                           ],
                                         ),

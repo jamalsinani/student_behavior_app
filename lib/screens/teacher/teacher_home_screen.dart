@@ -29,6 +29,7 @@ class _TeacherHomeScreenState
   List coverages = [];
   List swapRequests = [];
   List swapResponses = [];
+  List adminMessages = [];
   bool isLoading = true;
 
   final PageController _notesController =
@@ -198,6 +199,7 @@ class _TeacherHomeScreenState
         swapRequests =
             List.from(data['swap_requests'] ?? []);
             swapResponses = List.from(data['swap_responses'] ?? []);
+            adminMessages = List.from(data['admin_messages'] ?? []);
         isLoading = false;
       });
 
@@ -417,7 +419,7 @@ class _TeacherHomeScreenState
                     children: [
 
                       /// ================= تنبيهات اليوم =================
-                      const Text(
+                       const Text(
                         "تنبيهات اليوم",
                         style: TextStyle(
                           fontSize: 20,
@@ -428,34 +430,37 @@ class _TeacherHomeScreenState
 
                       const SizedBox(height: 15),
 
-                      SizedBox(
+                    SizedBox(
   height: 145,
-  child: (notes.isEmpty &&
-          coverages.isEmpty &&
-          swapRequests.isEmpty &&
-          swapResponses.isEmpty)
-      ? Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: const Text(
-            "لا توجد تنبيهات اليوم 🎉",
-            style: TextStyle(color: Colors.grey),
-          ),
-        )
-      : PageView.builder(
-          controller:
-              PageController(viewportFraction: 0.92),
-          itemCount:
-              swapRequests.length +
-              swapResponses.length +
-              coverages.length +
-              notes.length,
-          itemBuilder: (context, index) {
+  child:
+           (notes.isEmpty &&
+            coverages.isEmpty &&
+            swapRequests.isEmpty &&
+            swapResponses.isEmpty &&
+            adminMessages.isEmpty)
+        ? Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(25),
+            ),
 
-                                  /// 1️⃣ طلبات التبديل
+            child: const Text(
+              "لا توجد تنبيهات اليوم 🎉",
+              style: TextStyle(color: Colors.grey),
+            ),
+          )
+        : PageView.builder(
+            controller: PageController(viewportFraction: 0.92),
+            
+            itemCount:
+                swapRequests.length +
+                swapResponses.length +
+                coverages.length +
+                notes.length +
+                adminMessages.length,
+            itemBuilder: (context, index) {
+
                                  /// 1️⃣ طلبات التبديل
 if (index < swapRequests.length) {
 
@@ -618,6 +623,7 @@ if (index < swapRequests.length) {
 }
 
 
+
 // =========================================================
 // 2️⃣ ردود طلباتي (للمعلم الأصلي)
 // =========================================================
@@ -734,6 +740,7 @@ if (index <
 }
 
 
+
                                   /// 2️⃣ التغطيات
 if (index <
     swapRequests.length +
@@ -828,6 +835,59 @@ if (index <
     ),
   );
 }
+
+/// 4️⃣ رسائل الإدارة
+if (index <
+    swapRequests.length +
+    swapResponses.length +
+    coverages.length +
+    notes.length +
+    adminMessages.length) {
+
+  final item =
+      adminMessages[index -
+      swapRequests.length -
+      swapResponses.length -
+      coverages.length -
+      notes.length];
+
+  return Container(
+    margin: const EdgeInsets.only(right: 12),
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Colors.blue.withOpacity(0.9),
+          Colors.blue.withOpacity(0.7),
+        ],
+      ),
+      borderRadius: BorderRadius.circular(30),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+
+        const Text(
+          "رسالة من الإدارة",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        Text(
+          item['message'] ?? '',
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
                                   /// 3️⃣ الملاحظات
                                   final note = notes[
   index -
@@ -890,14 +950,16 @@ if (index <
                                               const TextStyle(
                                             color:
                                                 Colors.white,
-                                          ),
-                                        ),
+                                          ),   
+                                      ),     
                                       ],
                                     ),
                                   );
-                                },
-                              ),
+            },
+          ),
                       ),
+
+
 
                       const SizedBox(height: 20),
 
@@ -1009,20 +1071,23 @@ if (index <
                                         widget
                                             .userData,
                                   ),
-                                ),
+                                ),                                                       
                               );
                             },
                           ),
-                        ],
-                      ),
+                        ],  
+                        ),
 
                       const SizedBox(height: 20),
                     ],
-                  ),
+                  ),      
           ),
-        ],
+
+
+        ], 
       ),
     );
+    
   }
 
   Widget _buildServiceCard({
@@ -1100,6 +1165,12 @@ if (index <
     ),
     (route) => false,
   );
+}
+    
+@override
+void dispose() {
+  _notesController.dispose();
+  super.dispose();
 }
 
 

@@ -89,7 +89,7 @@ class _TeacherRecordsScreenState
         teacherPhone: phone,
         schoolId: schoolId,
       );
-
+      print(data);
       setState(() {
         myRecords = data;
         isLoadingMyRecords = false;
@@ -240,6 +240,9 @@ class _TeacherRecordsScreenState
             break;
           case 'admin_note':
             color = Colors.orange;
+            break;
+            case 'admin_message':
+            color = Colors.blue;
             break;
           default:
             color = Colors.grey;

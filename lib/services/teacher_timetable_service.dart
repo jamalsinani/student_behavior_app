@@ -82,6 +82,8 @@ static Future<Map<String, dynamic>> sendSwapRequest({
   required int originalPeriod,
   required int targetDay,
   required int targetPeriod,
+  required String originalDate,
+  required String targetDate,
   required String subjectName,
   required String section,
   required String grade,
@@ -100,10 +102,16 @@ static Future<Map<String, dynamic>> sendSwapRequest({
       "requester_name": requesterName,
       "substitute_phone": substitutePhone,
       "substitute_name": substituteName,
+
       "original_day": originalDay,
       "original_period": originalPeriod,
       "target_day": targetDay,
       "target_period": targetPeriod,
+
+      // 🔵 التاريخ الجديد
+      "original_date": originalDate,
+      "target_date": targetDate,
+
       "subject_name": subjectName,
       "section": section,
       "grade": grade,
@@ -113,5 +121,6 @@ static Future<Map<String, dynamic>> sendSwapRequest({
   final data = json.decode(response.body);
   return data;
 }
+
 
 }

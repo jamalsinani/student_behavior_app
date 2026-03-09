@@ -17,6 +17,7 @@ class StudentRecordsScreen extends StatefulWidget {
 class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   List reports = [];
+  List adminMessages = [];
   bool loading = true;
 
   Map<String, List> groupedReports = {};
@@ -32,25 +33,52 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   try {
 
-    final data = await ParentService.getStudentReportsHistory(
+    final reportsData = await ParentService.getStudentReportsHistory(
       studentId: widget.student["id"].toString(),
     );
 
-    print("DATA FROM API:");
-    print(data);
+    final messagesData = await ParentService.getParentMessages(
+      studentId: widget.student["id"].toString(),
+      schoolId: widget.student["school_id"].toString(),
+    );
 
-    reports = data;
+    reports = reportsData;
+    adminMessages = messagesData;
+
+    /// دمج الرسائل مع التقارير
+    String today = DateTime.now().toString().substring(0,10);
+
+      for (var msg in adminMessages) {
+
+        String date = msg["created_at"].toString().substring(0,10);
+
+        /// لا نضيف رسائل اليوم للسجلات
+        if (date != today) {
+
+          reports.add({
+            "report_date": date,
+            "report_title": msg["title"],
+            "report_text": msg["message"],
+            "report_type": "admin",
+          });
+
+        }
+
+      }
 
     groupReportsByDate();
 
   } catch (e) {
+
     print("ERROR:");
     print(e);
+
   }
 
   setState(() {
     loading = false;
   });
+
 }
 
   /// تجميع التقارير حسب التاريخ

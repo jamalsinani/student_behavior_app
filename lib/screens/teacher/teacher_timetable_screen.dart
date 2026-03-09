@@ -22,6 +22,7 @@ class _TeacherTimetableScreenState
 
   String? selectedTeacher;
   int? selectedTargetDay;
+  DateTime? selectedTargetDate;
   int? selectedTargetPeriod;
   Map<String, dynamic>? selectedTargetPeriodInfo;
   List teachers = [];
@@ -656,129 +657,156 @@ Positioned(
 
                   const SizedBox(height: 20),
 
-                  /// ================= اليوم البديل =================
-                  const Text("اختر اليوم البديل"),
-                  const SizedBox(height: 8),
+                  Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
 
-                  DropdownButtonFormField<int>(
-                    value: selectedTargetDay,
-                    items: List.generate(arabicDays.length, (index) {
-                      return DropdownMenuItem(
-                        value: index + 1,
-                        child: Text(arabicDays[index]),
-                      );
-                    }),
-                    onChanged: (value) async {
-  setModalState(() {
-    selectedTargetDay = value;
-    selectedTargetPeriod = null;
-    selectedTargetPeriodInfo = null;
-    availablePeriods = [];
-  });
+    /// ================= التاريخ =================
+    Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
 
-  if (selectedTeacher != null && value != null) {
+          const Text("اختر تاريخ التبديل"),
+          const SizedBox(height: 8),
 
-    final schoolId = int.tryParse(
-            widget.userData?['school_id'].toString() ?? "1") ??
-        1;
+          GestureDetector(
+            onTap: () async {
 
-    final data =
-    await TeacherTimetableService.getTimetable(
-  teacherPhone: selectedTeacher!,
-  schoolId: schoolId,
-  dayNumber: value,
-);
+              DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 30)),
+              );
 
-setModalState(() {
+              if (picked != null) {
 
-  if (data.isEmpty) {
-  isAdminTeacher = true;
+                int dayNumber = picked.weekday;
 
-  // المعلم إداري → إظهار جميع الحصص
-  availablePeriods = List.generate(8, (index) => index + 1);
+                if (dayNumber == 7) dayNumber = 1;
+                else if (dayNumber == 1) dayNumber = 2;
+                else if (dayNumber == 2) dayNumber = 3;
+                else if (dayNumber == 3) dayNumber = 4;
+                else if (dayNumber == 4) dayNumber = 5;
 
-} else {
-  isAdminTeacher = false;
+                setModalState(() {
+                  selectedTargetDate = picked;
+                  selectedTargetDay = dayNumber;
+                  selectedTargetPeriod = null;
+                  selectedTargetPeriodInfo = null;
+                  availablePeriods = [];
+                });
 
-  // المعلم لديه جدول → تظهر حصصه فقط
-  availablePeriods = data
-      .map<int>((e) => int.parse(e['period_number'].toString()))
-      .toList();
-}
+                if (selectedTeacher != null) {
 
-});
+                  final schoolId = int.tryParse(
+                          widget.userData?['school_id'].toString() ?? "1") ??
+                      1;
 
+                  final data = await TeacherTimetableService.getTimetable(
+                    teacherPhone: selectedTeacher!,
+                    schoolId: schoolId,
+                    dayNumber: selectedTargetDay!,
+                  );
 
-    print("AVAILABLE PERIODS: $availablePeriods");
-  }
-},
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+                  setModalState(() {
 
-                  const SizedBox(height: 20),
+                    if (data.isEmpty) {
+                      isAdminTeacher = true;
+                      availablePeriods = List.generate(8, (index) => index + 1);
+                    } else {
+                      isAdminTeacher = false;
+                      availablePeriods = data
+                          .map<int>((e) =>
+                              int.parse(e['period_number'].toString()))
+                          .toList();
+                    }
 
-                  /// ================= الحصة البديلة =================
-                  const Text("اختر الحصة البديلة"),
-const SizedBox(height: 8),
+                  });
 
-if (isAdminTeacher)
-Container(
-  margin: const EdgeInsets.only(top: 10, bottom: 10),
-  padding: const EdgeInsets.all(12),
-  decoration: BoxDecoration(
-    color: Colors.orange.shade50,
-    borderRadius: BorderRadius.circular(12),
-    border: Border.all(color: Colors.orange.shade300),
-  ),
-  child: const Text(
-    "المعلم المختار ليس لديه حصص في الجدول",
-    style: TextStyle(
-      color: Colors.orange,
-      fontWeight: FontWeight.bold,
+                }
+
+              }
+
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                selectedTargetDate == null
+                    ? "اختر التاريخ"
+                    : "${selectedTargetDate!.year}-${selectedTargetDate!.month}-${selectedTargetDate!.day}",
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+          ),
+
+        ],
+      ),
     ),
-  ),
+
+    const SizedBox(width: 15),
+
+    /// ================= الحصة =================
+    Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          const Text("الحصة البديلة"),
+          const SizedBox(height: 8),
+
+          DropdownButtonFormField<int>(
+            value: selectedTargetPeriod,
+            items: availablePeriods.map<DropdownMenuItem<int>>((period) {
+              return DropdownMenuItem<int>(
+                value: period,
+                child: Text("الحصة $period"),
+              );
+            }).toList(),
+            onChanged: (selectedTargetDay == null || selectedTeacher == null)
+                ? null
+                : (value) async {
+
+                    setModalState(() {
+                      selectedTargetPeriod = value;
+                      selectedTargetPeriodInfo = null;
+                    });
+
+                    final schoolId = int.tryParse(
+                            widget.userData?['school_id'].toString() ?? "1") ??
+                        1;
+
+                    final result =
+                        await TeacherTimetableService.getTeacherPeriodInfo(
+                      teacherPhone: selectedTeacher!,
+                      schoolId: schoolId,
+                      dayNumber: selectedTargetDay!,
+                      periodNumber: value!,
+                    );
+
+                    setModalState(() {
+                      selectedTargetPeriodInfo = result;
+                    });
+
+                  },
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+          ),
+
+        ],
+      ),
+    ),
+
+  ],
 ),
 
-
-DropdownButtonFormField<int>(
-  value: selectedTargetPeriod,
-  items: availablePeriods.map<DropdownMenuItem<int>>((period) {
-    return DropdownMenuItem<int>(
-      value: period,
-      child: Text("الحصة $period"),
-    );
-  }).toList(),
-  onChanged: (selectedTargetDay == null || selectedTeacher == null)
-      ? null
-      : (value) async {
-
-          setModalState(() {
-            selectedTargetPeriod = value;
-            selectedTargetPeriodInfo = null;
-          });
-
-          final schoolId = int.tryParse(
-                  widget.userData?['school_id'].toString() ?? "1") ??
-              1;
-
-          final result =
-              await TeacherTimetableService.getTeacherPeriodInfo(
-            teacherPhone: selectedTeacher!,
-            schoolId: schoolId,
-            dayNumber: selectedTargetDay!,
-            periodNumber: value!,
-          );
-
-          setModalState(() {
-            selectedTargetPeriodInfo = result;
-          });
-        },
-  decoration: const InputDecoration(
-    border: OutlineInputBorder(),
-  ),
-),
+const SizedBox(height: 20),
 
                   /// ================= عرض تفاصيل الحصة المختارة =================
                   if (selectedTargetPeriodInfo != null)
@@ -850,19 +878,24 @@ final substituteName = substitute['name'] ?? "";
 
             final result =
     await TeacherTimetableService.sendSwapRequest(
-  schoolId: schoolId,
-  requesterPhone: requesterPhone,
-  requesterName: requesterName,
-  substitutePhone: selectedTeacher!,
-  substituteName: substituteName,
-  originalDay: dayNumber,
-  originalPeriod: periodNumber,
-  targetDay: selectedTargetDay!,
-  targetPeriod: selectedTargetPeriod!,
-  subjectName: subjectName,
-  section: section,
-  grade: grade,
-);
+    schoolId: schoolId,
+    requesterPhone: requesterPhone,
+    requesterName: requesterName,
+    substitutePhone: selectedTeacher!,
+    substituteName: substituteName,
+    originalDay: dayNumber,
+    originalPeriod: periodNumber,
+
+    targetDay: selectedTargetDay!,
+    targetPeriod: selectedTargetPeriod!,
+
+    originalDate: DateTime.now().toString().split(" ")[0],
+    targetDate: selectedTargetDate!.toString().split(" ")[0],
+
+    subjectName: subjectName,
+    section: section,
+    grade: grade,
+  );
 
 print("API FINISHED");
 
