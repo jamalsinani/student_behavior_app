@@ -245,4 +245,44 @@ static Future<List> getStudentReportsHistory({
   }
 }
 
+/// =============================
+/// جلب رسائل الإدارة
+/// =============================
+static Future<List> getParentMessages({
+  required String studentId,
+  required String schoolId,
+}) async {
+
+  final uri = Uri.parse(
+    "$baseUrl/get-parent-messages",
+  );
+
+  final response = await http.post(
+    uri,
+    body: {
+      "student_id": studentId,
+      "school_id": schoolId,
+    },
+  );
+
+  print("ADMIN MESSAGES STATUS: ${response.statusCode}");
+  print("ADMIN MESSAGES BODY: ${response.body}");
+
+  if (response.statusCode == 200) {
+
+    final data = json.decode(response.body);
+
+    if (data['success'] == true) {
+      return List.from(data['data']);
+    }
+
+    return [];
+
+  } else {
+
+    throw Exception("فشل في جلب رسائل الإدارة");
+
+  }
+}
+
 }

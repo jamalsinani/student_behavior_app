@@ -19,6 +19,7 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
   List reports = [];
   List adminReports = [];
   List teacherReports = [];
+  List adminMessages = [];
 
   bool loading = true;
 
@@ -62,18 +63,23 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
     try {
 
       final data = await ParentService.getStudentReports(
-        studentId: widget.student["id"].toString(),
-      );
+      studentId: widget.student["id"].toString(),
+    );
 
-      reports = data;
+    reports = data;
 
-      /// تقسيم التقارير
-      adminReports = reports.where((r) =>
-      r["source"] == "admin").toList();
+    /// تقسيم التقارير
+    adminReports = reports.where((r) =>
+    r["source"] == "admin").toList();
 
-      teacherReports = reports.where((r) =>
-      r["source"] != "admin").toList();
+    teacherReports = reports.where((r) =>
+    r["source"] != "admin").toList();
 
+    /// جلب رسائل الإدارة
+    adminMessages = await ParentService.getParentMessages(
+      studentId: widget.student["id"].toString(),
+      schoolId: widget.student["school_id"].toString(),
+    );
     } catch (e) {
       print(e);
     }
@@ -342,56 +348,126 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
 
           Expanded(
 
-            child: loading
-                ? const Center(child: CircularProgressIndicator())
+  child: loading
+      ? const Center(child: CircularProgressIndicator())
 
-                : ListView(
-              children: [
+      : ListView(
+    children: [
 
-                /// تقارير الإدارة
-                if (adminReports.isNotEmpty) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    child: Text(
-                      "تقارير الإدارة",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+      /// رسائل الإدارة
+      if (adminMessages.isNotEmpty) ...[
+        const Padding(
+          padding: EdgeInsets.symmetric(
+              horizontal: 16, vertical: 8),
+          child: Text(
+            "رسائل الإدارة",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
 
-                  ...adminReports.map(buildReportCard),
-                ],
+        ...adminMessages.map((msg){
 
-                /// تقارير المعلمين
-                if (teacherReports.isNotEmpty) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    child: Text(
-                      "تقارير المعلمين",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                  ...teacherReports.map(buildReportCard),
-                ],
-
-                if (reports.isEmpty)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(30),
-                      child: Text("لا توجد تقارير اليوم"),
-                    ),
-                  )
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.indigo,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: const Offset(0,5),
+                )
               ],
             ),
-          )
+
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                Text(
+                  msg["title"] ?? "",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height:8),
+
+                Text(
+                  msg["message"] ?? "",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                  ),
+                ),
+
+                const SizedBox(height:6),
+
+                Text(
+                  msg["created_at"] ?? "",
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          );
+
+        }).toList(),
+      ],
+
+      /// تقارير الإدارة
+      if (adminReports.isNotEmpty) ...[
+        const Padding(
+          padding: EdgeInsets.symmetric(
+              horizontal: 16, vertical: 8),
+          child: Text(
+            "تقارير الإدارة",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+
+        ...adminReports.map(buildReportCard),
+      ],
+
+      /// تقارير المعلمين
+      if (teacherReports.isNotEmpty) ...[
+        const Padding(
+          padding: EdgeInsets.symmetric(
+              horizontal: 16, vertical: 8),
+          child: Text(
+            "تقارير المعلمين",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+
+        ...teacherReports.map(buildReportCard),
+      ],
+
+            if (reports.isEmpty && adminMessages.isEmpty)
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.all(30),
+            child: Text("لا توجد تقارير اليوم"),
+          ),
+        )
+    ],
+  ),
+),
         ],
       ),
     );
