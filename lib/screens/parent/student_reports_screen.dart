@@ -408,6 +408,32 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
                   ),
                 ),
 
+                if (msg["image"] != null && msg["image"] != "")
+                  Padding(
+                    padding: const EdgeInsets.only(top:10),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FullImageScreen(
+                              imageUrl: "https://abuobaida-edu.com/public/${msg["image"]}",
+                            ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          "https://abuobaida-edu.com/public/${msg["image"]}",
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+
                 const SizedBox(height:6),
 
                 Text(
@@ -473,3 +499,32 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
     );
   }
 }
+  class FullImageScreen extends StatelessWidget {
+
+  final String imageUrl;
+
+  const FullImageScreen({
+    super.key,
+    required this.imageUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+
+      body: Center(
+        child: InteractiveViewer(
+          child: Image.network(imageUrl),
+        ),
+      ),
+    );
+  }
+}
+

@@ -70,13 +70,39 @@ class _SchoolSendMessageScreenState extends State<SchoolSendMessageScreen> {
   /// ================= ارسال رسالة =================
   void sendMessage() async {
 
+  /// التحقق من اختيار الطالب
+  if (sendType == "single" && selectedStudent == null) {
+
+    Flushbar(
+      message: "يرجى اختيار الطالب أولاً",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.orange,
+      flushbarPosition: FlushbarPosition.TOP,
+    ).show(context);
+
+    return;
+  }
+
+  /// التحقق من كتابة الرسالة
+  if (messageController.text.trim().isEmpty) {
+
+    Flushbar(
+      message: "اكتب نص الرسالة",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.orange,
+      flushbarPosition: FlushbarPosition.TOP,
+    ).show(context);
+
+    return;
+  }
+
   final res = await SchoolMessageService.sendMessage(
-  schoolId: schoolId,
-  studentId: sendType == "single" ? selectedStudent : null,
-  message: messageController.text,
-  type: sendType,
-  image: sendType == "all" ? selectedImage : null,
-);
+    schoolId: schoolId,
+    studentId: sendType == "single" ? selectedStudent : null,
+    message: messageController.text,
+    type: sendType,
+    image: sendType == "all" ? selectedImage : null,
+  );
 
   if (res["status"] == true) {
 
@@ -108,14 +134,14 @@ class _SchoolSendMessageScreenState extends State<SchoolSendMessageScreen> {
     ).show(context);
 
     setState(() {
-    messageController.clear();
-    selectedImage = null;
-    selectedStudent = null;
-    selectedClass = null;
-    selectedSection = null;
-    students = [];
-    sections = [];
-  });
+      messageController.clear();
+      selectedImage = null;
+      selectedStudent = null;
+      selectedClass = null;
+      selectedSection = null;
+      students = [];
+      sections = [];
+    });
 
   }
 }
