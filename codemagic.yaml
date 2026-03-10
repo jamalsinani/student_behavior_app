@@ -8,11 +8,15 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.jamal.studentbehavior
-    scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
 
-      - name: Build iOS IPA
-        script: flutter build ipa --release
+    scripts:
+      - name: Get packages
+        script: |
+          flutter pub get
+
+      - name: Build IPA
+        script: |
+          flutter build ipa --release
+
     artifacts:
       - build/ios/ipa/*.ipa
