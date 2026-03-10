@@ -2,6 +2,10 @@ workflows:
   ios-workflow:
     name: iOS Workflow
     max_build_duration: 60
+
+    integrations:
+      app_store_connect: codemagic
+
     environment:
       flutter: stable
       xcode: latest
@@ -13,6 +17,10 @@ workflows:
       - name: Get packages
         script: |
           flutter pub get
+
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
 
       - name: Build IPA
         script: |
