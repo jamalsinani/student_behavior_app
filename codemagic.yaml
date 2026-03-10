@@ -18,7 +18,11 @@ workflows:
         script: |
           flutter pub get
 
-      - name: Set up code signing
+      - name: Fetch signing files
+        script: |
+          app-store-connect fetch-signing-files "com.jamal.studentbehavior" --type IOS_APP_STORE --create
+
+      - name: Apply signing to Xcode project
         script: |
           xcode-project use-profiles
 
