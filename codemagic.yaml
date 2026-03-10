@@ -5,12 +5,14 @@ workflows:
     environment:
       flutter: stable
       xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.jamal.studentbehavior
     scripts:
       - name: Get Flutter packages
-        script: |
-          flutter pub get
+        script: flutter pub get
+
       - name: Build iOS IPA
-        script: |
-          flutter build ipa --release
+        script: flutter build ipa --release
     artifacts:
       - build/ios/ipa/*.ipa
