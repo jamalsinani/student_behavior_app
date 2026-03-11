@@ -100,22 +100,32 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  await messaging.requestPermission(
+  NotificationSettings settings = await messaging.requestPermission(
     alert: true,
     badge: true,
     sound: true,
   );
 
-  // مهم للـ iOS
-  String? apnsToken = await messaging.getAPNSToken();
-  print("APNS TOKEN:");
-  print(apnsToken);
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
 
-  // بعده نحصل على FCM
-  String? token = await messaging.getToken();
+    String? apnsToken;
 
-  print("FCM TOKEN:");
-  print(token);
+    // ننتظر حتى يحصل التطبيق على APNS token
+    for (int i = 0; i < 10; i++) {
+      apnsToken = await messaging.getAPNSToken();
+      if (apnsToken != null) break;
+      await Future.delayed(const Duration(seconds: 1));
+    }
+
+    print("APNS TOKEN: $apnsToken");
+
+    // بعد ذلك نطلب FCM token
+    String? token = await messaging.getToken();
+    print("FCM TOKEN: $token");
+
+  } else {
+    print("User declined notifications");
+  }
 }
 
   @override
