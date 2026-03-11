@@ -24,7 +24,7 @@ workflows:
 
       - name: Build iOS
         script: |
-          flutter build ios --release
+          flutter build ios --release --no-codesign
 
       - name: Export IPA
         script: |
@@ -33,9 +33,9 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
 
-publishing:
-  app_store_connect:
-    auth: integration
-    submit_to_testflight: true
-    beta_groups:
-      - Internal Testers
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
