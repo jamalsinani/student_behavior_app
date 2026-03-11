@@ -94,35 +94,39 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
   });
 
 }
+
   void requestNotificationPermission() async {
+  try {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      String? apnsToken;
 
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      for (int i = 0; i < 10; i++) {
+        try {
+          apnsToken = await messaging.getAPNSToken();
+          if (apnsToken != null) break;
+        } catch (_) {}
+        await Future.delayed(const Duration(seconds: 1));
+      }
 
-    String? apnsToken;
+      print("APNS TOKEN: $apnsToken");
 
-    // ننتظر حتى يحصل التطبيق على APNS token
-    for (int i = 0; i < 10; i++) {
-      apnsToken = await messaging.getAPNSToken();
-      if (apnsToken != null) break;
-      await Future.delayed(const Duration(seconds: 1));
+      try {
+        String? token = await messaging.getToken();
+        print("FCM TOKEN: $token");
+      } catch (_) {}
+    } else {
+      print("User declined notifications");
     }
-
-    print("APNS TOKEN: $apnsToken");
-
-    // بعد ذلك نطلب FCM token
-    String? token = await messaging.getToken();
-    print("FCM TOKEN: $token");
-
-  } else {
-    print("User declined notifications");
+  } catch (e) {
+    print("FCM ERROR: $e");
   }
 }
 
