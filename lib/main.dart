@@ -98,19 +98,25 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
 }
   void requestNotificationPermission() async {
 
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-    await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+  await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
 
-    String? token = await messaging.getToken();
+  // مهم للـ iOS
+  String? apnsToken = await messaging.getAPNSToken();
+  print("APNS TOKEN:");
+  print(apnsToken);
 
-    print("FCM TOKEN:");
-    print(token);
-  }
+  // بعده نحصل على FCM
+  String? token = await messaging.getToken();
+
+  print("FCM TOKEN:");
+  print(token);
+}
 
   @override
   Widget build(BuildContext context) {
