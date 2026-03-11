@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'firebase_options.dart';
+
 import 'core/app_theme.dart';
 import 'screens/school_home_screen.dart';
 import 'screens/parent/student_reports_screen.dart';
@@ -9,7 +11,10 @@ import 'screens/parent/student_reports_screen.dart';
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  
+  await Firebase.initializeApp(
+  options: DefaultFirebaseOptions.currentPlatform,
+);
 
   runApp(const StudentBehaviorApp());
 }
