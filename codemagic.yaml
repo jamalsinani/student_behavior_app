@@ -22,9 +22,13 @@ workflows:
         script: |
           xcode-project use-profiles
 
-      - name: Build IPA
+      - name: Build iOS
         script: |
-          flutter build ipa --release
+          flutter build ios --release --no-codesign
+
+      - name: Export IPA
+        script: |
+          xcode-project build-ipa --workspace ios/Runner.xcworkspace --scheme Runner
 
     artifacts:
       - build/ios/ipa/*.ipa
