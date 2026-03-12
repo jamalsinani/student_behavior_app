@@ -15,7 +15,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
   runApp(const StudentBehaviorApp());
 }
 
@@ -101,17 +101,35 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  await messaging.requestPermission(
+  // طلب صلاحية الإشعارات
+  NotificationSettings settings = await messaging.requestPermission(
     alert: true,
     badge: true,
     sound: true,
   );
 
-  try {
-    String? token = await messaging.getToken();
-    print("FCM TOKEN: $token");
-  } catch (e) {
-    print("FCM ERROR: $e");
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+
+    try {
+
+      // الحصول على APNS Token (خاص بـ iOS)
+      String? apnsToken = await messaging.getAPNSToken();
+      print("APNS TOKEN: $apnsToken");
+
+      // الحصول على FCM Token
+      String? fcmToken = await messaging.getToken();
+      print("FCM TOKEN: $fcmToken");
+
+    } catch (e) {
+
+      print("FCM ERROR: $e");
+
+    }
+
+  } else {
+
+    print("User declined notifications");
+
   }
 
 }
