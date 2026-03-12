@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'firebase_options.dart';
+
 import 'core/app_theme.dart';
 import 'screens/school_home_screen.dart';
 import 'screens/parent/student_reports_screen.dart';
@@ -9,6 +11,7 @@ import 'screens/parent/student_reports_screen.dart';
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp();
 
   runApp(const StudentBehaviorApp());
@@ -91,21 +94,41 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
   });
 
 }
-  void requestNotificationPermission() async {
 
+  void requestNotificationPermission() async {
+  try {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-    await messaging.requestPermission(
+    NotificationSettings settings = await messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    String? token = await messaging.getToken();
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      String? apnsToken;
 
-    print("FCM TOKEN:");
-    print(token);
+      for (int i = 0; i < 10; i++) {
+        try {
+          apnsToken = await messaging.getAPNSToken();
+          if (apnsToken != null) break;
+        } catch (_) {}
+        await Future.delayed(const Duration(seconds: 1));
+      }
+
+      print("APNS TOKEN: $apnsToken");
+
+      try {
+        String? token = await messaging.getToken();
+        print("FCM TOKEN: $token");
+      } catch (_) {}
+    } else {
+      print("User declined notifications");
+    }
+  } catch (e) {
+    print("FCM ERROR: $e");
   }
+}
 
   @override
   Widget build(BuildContext context) {

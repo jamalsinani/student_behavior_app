@@ -28,7 +28,9 @@ workflows:
 
       - name: Export IPA
         script: |
-          xcode-project build-ipa --workspace ios/Runner.xcworkspace --scheme Runner
+          xcode-project build-ipa \
+            --workspace ios/Runner.xcworkspace \
+            --scheme Runner
 
     artifacts:
       - build/ios/ipa/*.ipa
