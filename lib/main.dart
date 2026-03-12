@@ -12,7 +12,9 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(const StudentBehaviorApp());
 }
@@ -96,38 +98,22 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
 }
 
   void requestNotificationPermission() async {
+
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
   try {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      String? apnsToken;
-
-      for (int i = 0; i < 10; i++) {
-        try {
-          apnsToken = await messaging.getAPNSToken();
-          if (apnsToken != null) break;
-        } catch (_) {}
-        await Future.delayed(const Duration(seconds: 1));
-      }
-
-      print("APNS TOKEN: $apnsToken");
-
-      try {
-        String? token = await messaging.getToken();
-        print("FCM TOKEN: $token");
-      } catch (_) {}
-    } else {
-      print("User declined notifications");
-    }
+    String? token = await messaging.getToken();
+    print("FCM TOKEN: $token");
   } catch (e) {
     print("FCM ERROR: $e");
   }
+
 }
 
   @override
