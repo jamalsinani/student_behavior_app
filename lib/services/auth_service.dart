@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-//import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthService {
   static const String baseUrl = "https://abuobaida-edu.com/api";
@@ -138,9 +138,22 @@ static Future<Map<String, dynamic>> forgotPassword({
 
 static Future<void> sendFcmToken(int userId) async {
 
-  // الإشعارات معطلة مؤقتًا
-  print("FCM Disabled Temporarily");
+  String? token = await FirebaseMessaging.instance.getToken();
 
+  print("USER ID: $userId");
+  print("FCM TOKEN: $token");
+
+  if (token == null) return;
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/save-fcm-token"),
+    body: {
+      "user_id": userId.toString(),
+      "fcm_token": token,
+    },
+  );
+
+  print("SERVER RESPONSE: ${response.body}");
 }
 
 }

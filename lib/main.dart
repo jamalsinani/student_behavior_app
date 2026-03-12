@@ -7,14 +7,8 @@ import 'firebase_options.dart';
 import 'core/app_theme.dart';
 import 'screens/school_home_screen.dart';
 
-String? globalFcmToken;
-
 Future<void> initNotifications() async {
-
-  if (kIsWeb) {
-    print("Notifications disabled on Web");
-    return;
-  }
+  if (kIsWeb) return;
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
@@ -24,33 +18,27 @@ Future<void> initNotifications() async {
     sound: true,
   );
 
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+  print("Authorization: ${settings.authorizationStatus}");
 
-    try {
-
-      String? apnsToken = await messaging.getAPNSToken();
-      print("APNS TOKEN: $apnsToken");
-
-      globalFcmToken = await messaging.getToken();
-      print("FCM TOKEN: $globalFcmToken");
-
-    } catch (e) {
-      print("FCM ERROR: $e");
-    }
-
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    String? apnsToken = await messaging.getAPNSToken();
+    print("APNS TOKEN: $apnsToken");
   }
 
+  String? fcmToken = await messaging.getToken();
+  print("FCM TOKEN: $fcmToken");
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print("Notification received: ${message.notification?.title}");
+  });
 }
 
 Future<void> main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  await initNotifications();
 
   runApp(const StudentBehaviorApp());
 }
@@ -68,41 +56,23 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 2), () {
-
-      if (globalFcmToken != null) {
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("FCM TOKEN: $globalFcmToken"),
-            duration: const Duration(seconds: 10),
-          ),
-        );
-
-      }
-
-    });
-
+    // تشغيل الإشعارات بعد تشغيل التطبيق
+    initNotifications();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'EduBehave Platform',
       theme: AppTheme.lightTheme,
-
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
           child: child!,
         );
       },
-
       home: const SchoolHomeScreen(),
     );
-
   }
-
 }
