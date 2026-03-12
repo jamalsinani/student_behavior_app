@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 import 'firebase_options.dart';
-
 import 'core/app_theme.dart';
 import 'screens/school_home_screen.dart';
-import 'package:flutter/foundation.dart';
+
+String? globalFcmToken;
 
 Future<void> initNotifications() async {
 
@@ -30,8 +31,8 @@ Future<void> initNotifications() async {
       String? apnsToken = await messaging.getAPNSToken();
       print("APNS TOKEN: $apnsToken");
 
-      String? fcmToken = await messaging.getToken();
-      print("FCM TOKEN: $fcmToken");
+      globalFcmToken = await messaging.getToken();
+      print("FCM TOKEN: $globalFcmToken");
 
     } catch (e) {
       print("FCM ERROR: $e");
@@ -62,6 +63,27 @@ class StudentBehaviorApp extends StatefulWidget {
 }
 
 class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(const Duration(seconds: 2), () {
+
+      if (globalFcmToken != null) {
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("FCM TOKEN: $globalFcmToken"),
+            duration: const Duration(seconds: 10),
+          ),
+        );
+
+      }
+
+    });
+
+  }
 
   @override
   Widget build(BuildContext context) {
