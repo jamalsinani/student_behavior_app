@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'firebase_options.dart';
 
 import 'core/app_theme.dart';
 import 'screens/school_home_screen.dart';
-import 'screens/parent/student_reports_screen.dart';
 
 Future<void> main() async {
 
@@ -15,7 +13,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
   runApp(const StudentBehaviorApp());
 }
 
@@ -31,108 +29,7 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
   @override
   void initState() {
     super.initState();
-
-    requestNotificationPermission();
-
-    /// إذا ضغط المستخدم على الإشعار والتطبيق كان مغلق
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-
-      if (message != null) {
-        handleNotification(message);
-      }
-
-    });
-
-    /// إذا ضغط المستخدم على الإشعار والتطبيق في الخلفية
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-
-      handleNotification(message);
-
-    });
-
-    /// إذا وصل إشعار والتطبيق مفتوح
-    FirebaseMessaging.onMessage.listen((message) {
-
-      if (message.notification != null) {
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              message.notification!.body ?? "وصلك إشعار جديد",
-            ),
-          ),
-        );
-
-      }
-
-    });
-
   }
-
-  void handleNotification(RemoteMessage message) {
-
-  Future.delayed(const Duration(milliseconds: 800), () {
-
-    String? type = message.data['type'];
-
-    if (type == "report") {
-
-      Map<String, dynamic> student = {
-        "id": message.data['student_id'],
-        "name": message.data['student_name']
-      };
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => StudentReportsScreen(
-            student: student,
-          ),
-        ),
-      );
-
-    }
-
-  });
-
-}
-
-  void requestNotificationPermission() async {
-
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  // طلب صلاحية الإشعارات
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-
-    try {
-
-      // الحصول على APNS Token (خاص بـ iOS)
-      String? apnsToken = await messaging.getAPNSToken();
-      print("APNS TOKEN: $apnsToken");
-
-      // الحصول على FCM Token
-      String? fcmToken = await messaging.getToken();
-      print("FCM TOKEN: $fcmToken");
-
-    } catch (e) {
-
-      print("FCM ERROR: $e");
-
-    }
-
-  } else {
-
-    print("User declined notifications");
-
-  }
-
-}
 
   @override
   Widget build(BuildContext context) {
