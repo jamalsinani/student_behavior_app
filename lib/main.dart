@@ -8,29 +8,47 @@ import 'core/app_theme.dart';
 import 'screens/school_home_screen.dart';
 
 Future<void> initNotifications() async {
-  if (kIsWeb) return;
+  try {
 
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+    if (kIsWeb) return;
 
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  print("Authorization: ${settings.authorizationStatus}");
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
-  if (defaultTargetPlatform == TargetPlatform.iOS) {
-    String? apnsToken = await messaging.getAPNSToken();
-    print("APNS TOKEN: $apnsToken");
+    print("Authorization: ${settings.authorizationStatus}");
+
+    // ===== خاص بـ iOS =====
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+
+      String? apnsToken;
+
+      for (int i = 0; i < 10; i++) {
+        apnsToken = await messaging.getAPNSToken();
+
+        if (apnsToken != null) break;
+
+        await Future.delayed(const Duration(seconds: 1));
+      }
+
+      print("APNS TOKEN: $apnsToken");
+    }
+
+    // ===== يعمل للأندرويد و iOS =====
+    String? fcmToken = await messaging.getToken();
+    print("FCM TOKEN: $fcmToken");
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Notification received: ${message.notification?.title}");
+    });
+
+  } catch (e) {
+    print("Notification error: $e");
   }
-
-  String? fcmToken = await messaging.getToken();
-  print("FCM TOKEN: $fcmToken");
-
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print("Notification received: ${message.notification?.title}");
-  });
 }
 
 Future<void> main() async {
