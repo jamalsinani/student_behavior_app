@@ -138,35 +138,32 @@ static Future<Map<String, dynamic>> forgotPassword({
 
 static Future<void> sendFcmToken(int userId) async {
 
-  String? token;
+  try {
 
-  // نحاول عدة مرات حتى نحصل على التوكن (مهم للـ iOS)
-  for (int i = 0; i < 10; i++) {
+    String? token = await FirebaseMessaging.instance.getToken();
 
-    token = await FirebaseMessaging.instance.getToken();
+    print("USER ID: $userId");
+    print("FCM TOKEN: $token");
 
-    if (token != null) break;
+    if (token == null) {
+      print("FCM token not ready yet");
+      return;
+    }
 
-    await Future.delayed(const Duration(seconds: 1));
+    final response = await http.post(
+      Uri.parse("$baseUrl/save-fcm-token"),
+      body: {
+        "user_id": userId.toString(),
+        "fcm_token": token,
+      },
+    );
+
+    print("SERVER RESPONSE: ${response.body}");
+
+  } catch (e) {
+    print("FCM token error: $e");
   }
 
-  print("USER ID: $userId");
-  print("FCM TOKEN: $token");
-
-  if (token == null) {
-    print("FCM token not ready yet");
-    return;
-  }
-
-  final response = await http.post(
-    Uri.parse("$baseUrl/save-fcm-token"),
-    body: {
-      "user_id": userId.toString(),
-      "fcm_token": token,
-    },
-  );
-
-  print("SERVER RESPONSE: ${response.body}");
 }
 
 
