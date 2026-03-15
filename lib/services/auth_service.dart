@@ -6,19 +6,25 @@ class AuthService {
   static const String baseUrl = "https://abuobaida-edu.com/api";
 
   static Future<Map<String, dynamic>> checkPhone(String phone) async {
-    final response = await http.post(
-      Uri.parse("$baseUrl/check-phone"),
-      body: {
-        'phone': phone,
-      },
-    );
+  final response = await http.post(
+    Uri.parse("$baseUrl/check-phone"),
+    headers: {
+      "Accept": "application/json",
+    },
+    body: {
+      'phone': phone,
+    },
+  );
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Server Error: ${response.statusCode}");
-    }
+  print("CHECK PHONE STATUS: ${response.statusCode}");
+  print("CHECK PHONE BODY: ${response.body}");
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Server Error: ${response.statusCode} - ${response.body}");
   }
+}
 
   static Future<Map<String, dynamic>> registerUser({
   required String name,
