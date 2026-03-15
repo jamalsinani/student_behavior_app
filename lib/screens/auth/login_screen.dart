@@ -87,7 +87,11 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setBool('is_logged_in', true);
 
         print("LOGIN USER ID: $userId");
-        await AuthService.sendFcmToken(userId);
+        try {
+            await AuthService.sendFcmToken(userId);
+          } catch (e) {
+            print("FCM token error: $e");
+          }
 
         if (rememberMe) {
           await prefs.setString('saved_phone', phoneController.text.trim());
