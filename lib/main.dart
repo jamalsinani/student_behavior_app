@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'firebase_options.dart';
 import 'core/app_theme.dart';
 import 'screens/school_home_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 Future<void> initNotifications() async {
   try {
@@ -49,6 +51,10 @@ Future<void> initNotifications() async {
     }
 
     print("FCM TOKEN: $fcmToken");
+
+    if (fcmToken != null) {
+    await sendFcmTokenToServer(fcmToken);
+  }
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Notification received: ${message.notification?.title}");
@@ -100,5 +106,35 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
       },
       home: const SchoolHomeScreen(),
     );
+  }
+}
+
+static Future<void> sendFcmToken(int userId) async {
+  try {
+    String? token = await FirebaseMessaging.instance.getToken();
+
+    print("FCM TOKEN: $token");
+
+    if (token == null) {
+      print("❌ Token is NULL");
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse("https://abuobaida-edu.com/api/save-fcm-token"),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "fcm_token": token,
+        "user_id": userId,
+      }),
+    );
+
+    print("Status Code: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+  } catch (e) {
+    print("FCM send error: $e");
   }
 }
