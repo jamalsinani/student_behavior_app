@@ -152,17 +152,9 @@ static Future<void> sendFcmToken(int userId) async {
     print("FCM TOKEN: $token");
 
     if (token == null) {
-
-  await http.post(
-    Uri.parse("$baseUrl/save-fcm-token"),
-    body: {
-      "user_id": userId.toString(),
-      "fcm_token": "NULL_TOKEN",
-    },
-  );
-
-  return;
-}
+    print("❌ FCM TOKEN IS NULL - iOS PROBLEM");
+    return;
+  }
 
     final response = await http.post(
       Uri.parse("$baseUrl/save-fcm-token"),

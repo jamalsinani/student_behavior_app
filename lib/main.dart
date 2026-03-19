@@ -108,33 +108,3 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
     );
   }
 }
-
-static Future<void> sendFcmToken(int userId) async {
-  try {
-    String? token = await FirebaseMessaging.instance.getToken();
-
-    print("FCM TOKEN: $token");
-
-    if (token == null) {
-      print("❌ Token is NULL");
-      return;
-    }
-
-    final response = await http.post(
-      Uri.parse("https://abuobaida-edu.com/api/save-fcm-token"),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: jsonEncode({
-        "fcm_token": token,
-        "user_id": userId,
-      }),
-    );
-
-    print("Status Code: ${response.statusCode}");
-    print("Response Body: ${response.body}");
-
-  } catch (e) {
-    print("FCM send error: $e");
-  }
-}
