@@ -9,7 +9,6 @@ import 'screens/school_home_screen.dart';
 
 Future<void> initNotifications() async {
   try {
-
     if (kIsWeb) return;
 
     FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -22,10 +21,11 @@ Future<void> initNotifications() async {
 
     print("Authorization: ${settings.authorizationStatus}");
 
+    String? apnsToken;
+    String? fcmToken;
+
     // ===== خاص بـ iOS =====
     if (defaultTargetPlatform == TargetPlatform.iOS) {
-
-      String? apnsToken;
 
       for (int i = 0; i < 10; i++) {
         apnsToken = await messaging.getAPNSToken();
@@ -36,10 +36,18 @@ Future<void> initNotifications() async {
       }
 
       print("APNS TOKEN: $apnsToken");
+
+      // 🔥 لا نطلب FCM إلا بعد APNs
+      if (apnsToken != null) {
+        await Future.delayed(const Duration(seconds: 2));
+        fcmToken = await messaging.getToken();
+      }
+
+    } else {
+      // Android
+      fcmToken = await messaging.getToken();
     }
 
-    // ===== يعمل للأندرويد و iOS =====
-    String? fcmToken = await messaging.getToken();
     print("FCM TOKEN: $fcmToken");
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
