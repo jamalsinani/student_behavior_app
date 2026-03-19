@@ -29,7 +29,8 @@ Future<void> initNotifications() async {
     // ===== خاص بـ iOS =====
     if (defaultTargetPlatform == TargetPlatform.iOS) {
 
-      for (int i = 0; i < 10; i++) {
+      // 🔥 نحاول أكثر عشان iOS يتأخر
+      for (int i = 0; i < 20; i++) {
         apnsToken = await messaging.getAPNSToken();
 
         if (apnsToken != null) break;
@@ -39,14 +40,19 @@ Future<void> initNotifications() async {
 
       print("APNS TOKEN: $apnsToken");
 
-      // 🔥 لا نطلب FCM إلا بعد APNs
-      if (apnsToken != null) {
-        await Future.delayed(const Duration(seconds: 2));
-        fcmToken = await messaging.getToken();
+      // ❌ إذا ما وصل APNs → نوقف هنا
+      if (apnsToken == null) {
+        print("❌ APNS NOT RECEIVED");
+        return;
       }
 
+      // 🔥 ننتظر شوي ثم نطلب FCM
+      await Future.delayed(const Duration(seconds: 2));
+
+      fcmToken = await messaging.getToken();
+
     } else {
-      // Android
+      // ===== Android =====
       fcmToken = await messaging.getToken();
     }
 
