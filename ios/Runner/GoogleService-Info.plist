@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.jamal.studentbehavior</string>
+	<string>com.example.studentbehaviorapp</string>
 	<key>PROJECT_ID</key>
 	<string>student-behavior-4833f</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:897875266644:ios:b2fd0f088d2ae2b59931c1</string>
+	<string>1:897875266644:ios:798cff75ba7c97019931c1</string>
 </dict>
 </plist>
