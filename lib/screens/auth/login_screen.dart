@@ -8,6 +8,7 @@ import '../parent/parent_home_screen.dart';
 import '../school_admin_screen.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -87,11 +88,17 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setBool('is_logged_in', true);
 
         print("LOGIN USER ID: $userId");
+
         try {
-            await AuthService.sendFcmToken(userId);
-          } catch (e) {
-            print("FCM token error: $e");
-          }
+
+          /// 🔥 طلب إذن الإشعارات (مهم جدا للايفون)
+          await FirebaseMessaging.instance.requestPermission();
+
+          await AuthService.sendFcmToken(userId);
+
+        } catch (e) {
+          print("FCM token error: $e");
+        }
 
         if (rememberMe) {
           await prefs.setString('saved_phone', phoneController.text.trim());
