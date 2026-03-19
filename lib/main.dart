@@ -52,10 +52,6 @@ Future<void> initNotifications() async {
 
     print("FCM TOKEN: $fcmToken");
 
-    if (fcmToken != null) {
-    await sendFcmTokenToServer(fcmToken);
-  }
-
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Notification received: ${message.notification?.title}");
     });
