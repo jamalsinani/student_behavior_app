@@ -7,6 +7,7 @@ import 'school_records_screen.dart';
 import 'school_send_message_screen.dart';
 import 'school_send_teacher_message_screen.dart';
 import 'school_sent_notifications_screen.dart';
+import 'school_settings_screen.dart';
 
 class SchoolAdminScreen extends StatefulWidget {
   const SchoolAdminScreen({super.key});
@@ -78,43 +79,87 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
               child: Column(
                 children: [
 
+                  /// 🔹 الأزرار (خروج + إعدادات جنب بعض)
                   Align(
                     alignment: Alignment.topLeft,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(40),
-                      onTap: () async {
+                    child: Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 15, top: 10),
+                        child: Row(
+                          children: [
 
-                        final prefs = await SharedPreferences.getInstance();
+                            /// زر تسجيل الخروج
+                            InkWell(
+                              borderRadius: BorderRadius.circular(40),
+                              onTap: () async {
 
-                        await prefs.remove('is_logged_in');
-                        await prefs.remove('saved_phone');
-                        await prefs.remove('saved_password');
-                        await prefs.remove('remember_me');
+                                final prefs = await SharedPreferences.getInstance();
 
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SchoolHomeScreen(),
-                          ),
-                          (route) => false,
-                        );
+                                await prefs.remove('is_logged_in');
+                                await prefs.remove('saved_phone');
+                                await prefs.remove('saved_password');
+                                await prefs.remove('remember_me');
 
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.logout_rounded,
-                          color: Colors.white,
-                          size: 22,
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const SchoolHomeScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.18),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.logout_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 10),
+
+                            /// زر الإعدادات
+                            InkWell(
+                              borderRadius: BorderRadius.circular(40),
+                              onTap: () {
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const SchoolSettingsScreen(),
+                                  ),
+                                );
+
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.18),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.settings,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 10),
 
+                  /// 🔹 صورة المدرسة
                   const CircleAvatar(
                     radius: 40,
                     backgroundImage:
@@ -123,6 +168,7 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
 
                   const SizedBox(height: 15),
 
+                  /// 🔹 اسم المدرسة
                   const Text(
                     "مدرسة الشيخ ابو عبيدة عبدالله بن محمد البلوشي",
                     textAlign: TextAlign.center,
@@ -135,6 +181,7 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
 
                   const SizedBox(height: 8),
 
+                  /// 🔹 الوصف
                   const Text(
                     "إدارة المدرسة",
                     style: TextStyle(
@@ -145,8 +192,6 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
                 ],
               ),
             ),
-
-            const SizedBox(height: 25),
 
             /// ================= الإشعارات =================
             _sectionTitle("الإشعارات"),

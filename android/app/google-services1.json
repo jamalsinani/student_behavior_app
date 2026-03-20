@@ -9,25 +9,6 @@
       "client_info": {
         "mobilesdk_app_id": "1:897875266644:android:e4a02b975ccaff579931c1",
         "android_client_info": {
-          "package_name": "com.example.student_behavior_app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAVwtiTlIy6N0H48yF5lqrS8FBl2RwI-Qo"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:897875266644:android:e43e18daabebc0349931c1",
-        "android_client_info": {
           "package_name": "com.jamalsinani.studentbehavior"
         }
       },

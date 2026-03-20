@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/parent_service.dart';
 import 'student_profile_screen.dart';
 import '../school_home_screen.dart';
+import '../school_settings_screen.dart';
 
 class ParentHomeScreen extends StatefulWidget {
 
@@ -154,38 +155,86 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                 ),
 
                 /// زر الخروج
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(40),
-                      onTap: () {
+                  Align(
+                      alignment: Alignment.topCenter,
+                      child: Transform.translate(
+                        offset: const Offset(0, -6),
+                        child: Row(
+                          children: [
 
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SchoolHomeScreen(),
-                          ),
-                          (route) => false,
-                        );
+                            /// 🔴 خروج
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(40),
+                                onTap: () {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SchoolHomeScreen(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.18),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.logout_rounded,
+                                    color: Colors.white,
+                                    size: 17,
+                                  ),
+                                ),
+                              ),
+                            ),
 
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.35),
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.logout_rounded,
-                          color: Colors.white,
-                          size: 22,
+                            const SizedBox(width: 6),
+
+                            /// ⚙️ الإعدادات (نفس صفحة المعلم)
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(40),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SchoolSettingsScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.18),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.settings,
+                                    color: Colors.white,
+                                    size: 17,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          ],
                         ),
                       ),
                     ),
-                  )
               ],
             ),
           ),

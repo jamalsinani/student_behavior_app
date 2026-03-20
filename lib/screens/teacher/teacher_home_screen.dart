@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
 import '../school_home_screen.dart';
+import '../school_settings_screen.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -66,6 +67,8 @@ class _TeacherHomeScreenState
     final response = await http.post(uri);
 
     final data = jsonDecode(response.body);
+
+    if (!mounted) return;
 
     if (data["status"] == true) {
 
@@ -130,6 +133,8 @@ class _TeacherHomeScreenState
     }
 
   } catch (e) {
+
+    if (!mounted) return;
 
     Flushbar(
       margin: const EdgeInsets.all(16),
@@ -281,130 +286,162 @@ class _TeacherHomeScreenState
       body: Column(
         children: [
 
-          /// ================= HEADER =================
-          Container(
-            width: double.infinity,
-            padding:
-                const EdgeInsets.only(
-                    top: 60,
-                    right: 20,
-                    left: 20,
-                    bottom: 40),
-            decoration:
-                const BoxDecoration(
-              gradient:
-                  LinearGradient(
-                colors: [
-                  AppColors
-                      .teacherPrimary,
-                  AppColors
-                      .teacherSecondary,
-                ],
-                begin:
-                    Alignment.topRight,
-                end: Alignment
-                    .bottomLeft,
-              ),
-              borderRadius:
-                  BorderRadius.only(
-                bottomLeft:
-                    Radius.circular(
-                        45),
-                bottomRight:
-                    Radius.circular(
-                        45),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment
-                      .start,
-              children: [
+              /// ================= HEADER =================
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(
+                  top: 60,
+                  right: 20,
+                  left: 20,
+                  bottom: 40,
+                ),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.teacherPrimary,
+                      AppColors.teacherSecondary,
+                    ],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(45),
+                    bottomRight: Radius.circular(45),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                Expanded(
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 34,
-                        backgroundColor:
-                            Colors.white,
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/images/omani_teacher.png',
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
+                    /// 🔹 بيانات المعلم
+                    Expanded(
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 34,
+                            backgroundColor: Colors.white,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/images/omani_teacher.png',
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  getGreeting(),
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  teacherName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  subjectName,
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 18),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    /// 🔹 الأزرار (مرفوعة + مصغرة)
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: Transform.translate(
+                        offset: const Offset(0, -6), // 👈 رفع خفيف بدون مشاكل
+                        child: Row(
                           children: [
-                            Text(
-                              getGreeting(),
-                              style: const TextStyle(
-                                  color: Colors.white70),
+
+                            /// 🔴 خروج
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(40),
+                                onTap: _confirmLogout,
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.18),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.logout_rounded,
+                                    color: Colors.white,
+                                    size: 17,
+                                  ),
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              teacherName,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight:
-                                      FontWeight.bold),
+
+                            const SizedBox(width: 6),
+
+                            /// ⚙️ إعدادات
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(40),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const SchoolSettingsScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.18),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.settings,
+                                    color: Colors.white,
+                                    size: 17,
+                                  ),
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              subjectName,
-                              style: const TextStyle(
-                                  color: Colors.white70),
-                            ),
+
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius:
-                        BorderRadius.circular(40),
-                    onTap: _confirmLogout,
-                    child: Container(
-                      padding:
-                          const EdgeInsets.all(12),
-                      decoration:
-                          BoxDecoration(
-                        color: Colors.white
-                            .withOpacity(0.18),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white
-                              .withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.logout_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
 
-          const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
 
           Expanded(
             child: isLoading

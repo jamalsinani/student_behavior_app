@@ -172,5 +172,38 @@ static Future<void> sendFcmToken(int userId) async {
 
 }
 
+static Future<Map<String, dynamic>> deleteAccount({
+  required String phone,
+  required String password,
+}) async {
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/delete-account"),
+    headers: {
+      "Accept": "application/json",
+    },
+    body: {
+      'phone': phone,
+      'password': password,
+    },
+  );
+
+  print("DELETE RESPONSE: ${response.body}");
+
+  if (response.statusCode == 200) {
+
+    final data = jsonDecode(response.body);
+
+    if (data["status"] == true) {
+      return data;
+    } else {
+      throw Exception(data["message"]);
+    }
+
+  } else {
+    throw Exception("فشل الاتصال بالخادم");
+  }
+}
+
 
 }
