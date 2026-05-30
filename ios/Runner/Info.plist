@@ -55,5 +55,14 @@
 	<string>remote-notification</string>
 	</array>
 
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>يستخدم التطبيق موقعك للتحقق من وجودك داخل نطاق المدرسة عند تقديم الاستئذان.</string>
+
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>يستخدم التطبيق موقعك للتحقق من وجودك داخل نطاق المدرسة عند تقديم الاستئذان.</string>
+
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>يستخدم التطبيق موقعك للتحقق من وجودك داخل نطاق المدرسة عند تقديم الاستئذان.</string>
+
 </dict>
 </plist>
