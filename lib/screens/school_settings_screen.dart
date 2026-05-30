@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import 'school_home_screen.dart';
 import 'about_app_screen.dart';
 import 'privacy_policy_screen.dart';
+import 'teacher/permission_request_screen.dart';
 
 class SchoolSettingsScreen extends StatelessWidget {
   const SchoolSettingsScreen({super.key});
@@ -112,6 +113,45 @@ class SchoolSettingsScreen extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 15),
+
+                  _settingCard(
+                  title: "الاستئذان",
+                  icon: Icons.exit_to_app,
+                  color: Colors.purple,
+
+                  onTap: () async {
+
+                    final prefs =
+                        await SharedPreferences.getInstance();
+
+                    int teacherId =
+                        prefs.getInt('teacher_id') ?? 0;
+
+
+                    int schoolId =
+                        prefs.getInt('school_id') ?? 0;
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+
+                        builder: (_) =>
+                            PermissionRequestScreen(
+
+                          teacherId: teacherId,
+
+                          schoolId: schoolId,
+
+                        ),
+
+                      ),
+                    );
+
+                  },
+                ),
+
+                const SizedBox(height: 15),
+
 
                   _settingCard(
                     title: "تواصل معنا",

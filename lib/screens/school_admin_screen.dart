@@ -32,11 +32,27 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
     try {
 
       final data =
-          await SchoolNotificationService.fetchNotifications(1);
+    await SchoolNotificationService.fetchNotifications(1);
+
+
+      // اختبار البيانات القادمة
+      print("=========== NOTIFICATIONS ===========");
+
+      for (var item in data) {
+
+        print(item);
+
+      }
+
+      print("=====================================");
+
 
       setState(() {
+
         notifications = data;
+
         isLoading = false;
+
       });
 
     } catch (e) {
@@ -210,6 +226,12 @@ Padding(
             List swapNotifications =
                 notifications.where((e) => e["source"] == "swap_request").toList();
 
+                // 🚪 استئذانات المعلمين
+                List permissionNotifications =
+                    notifications.where(
+                      (e) => e["source"] == "teacher_permission",
+                    ).toList();
+
             /// إزالة التكرار
             Map uniqueSwap = {};
 
@@ -220,9 +242,10 @@ Padding(
             swapNotifications = uniqueSwap.values.toList();
 
             List sliderItems = [
-              ...messageNotifications,
-              ...swapNotifications
-            ];
+            ...messageNotifications,
+            ...swapNotifications,
+            ...permissionNotifications,
+          ];
 
             return CarouselSlider(
               options: CarouselOptions(
@@ -237,15 +260,25 @@ Padding(
                 bool isSwap =
                     item["source"] == "swap_request";
 
+                bool isPermission =
+                    item["source"] == "teacher_permission";
+
                 return Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: isSwap
+                      colors: isPermission
+                      ? [
+                          Colors.purple,
+                          Colors.deepPurpleAccent,
+                        ]
+
+                      : isSwap
                           ? [
                               const Color(0xfff7971e),
                               const Color(0xffffd200)
                             ]
+
                           : [
                               const Color(0xff2193b0),
                               const Color(0xff6dd5ed)
@@ -270,9 +303,11 @@ Padding(
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          isSwap
-                              ? Icons.swap_horiz
-                              : Icons.mail,
+                        isPermission
+                            ? Icons.exit_to_app
+                            : isSwap
+                                ? Icons.swap_horiz
+                                : Icons.mail,
                           color: Colors.white,
                           size: 28,
                         ),
@@ -398,9 +433,11 @@ Padding(
                                 children: [
 
                                   Text(
-                                    item["student_name"] ??
-                                        item["title"] ??
-                                        "",
+                                  isPermission
+                                      ? (item["original_teacher"] ?? "معلم غير معروف")
+                                      : (item["student_name"] ??
+                                          item["title"] ??
+                                          ""),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
@@ -411,12 +448,15 @@ Padding(
                                   const SizedBox(height: 4),
 
                                   Text(
-                                    "${item["class"] ?? ""} - ${item["section"] ?? ""}",
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                    ),
+                                  isPermission
+                                      ? "طلب استئذان خروج"
+                                      : "${item["class"] ?? ""} - ${item["section"] ?? ""}",
+
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
                                   ),
+                                ),
 
                                   const SizedBox(height: 6),
 

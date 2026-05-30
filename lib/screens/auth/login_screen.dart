@@ -57,7 +57,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
       void login() async {
 
-      if (phoneController.text.isEmpty || passwordController.text.isEmpty) {
+        if (phoneController.text.isEmpty ||
+        passwordController.text.isEmpty) {
+          if (phoneController.text.trim().length != 8) {
+            Flushbar(
+              message: "يرجى إدخال رقم الهاتف بشكل صحيح",
+              duration: const Duration(seconds: 3),
+              flushbarPosition: FlushbarPosition.TOP,
+              backgroundColor: Colors.red,
+              margin: const EdgeInsets.all(12),
+              borderRadius: BorderRadius.circular(12),
+            ).show(context);
+            return;
+          }
         Flushbar(
           message: "يرجى إدخال جميع البيانات",
           duration: const Duration(seconds: 3),
@@ -74,8 +86,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
       try {
 
+        final String phoneNumber =
+        '968${phoneController.text.trim()}';
+
         final response = await AuthService.loginUser(
-          phone: phoneController.text.trim(),
+          phone: phoneNumber,
           password: passwordController.text.trim(),
         );
 
@@ -86,6 +101,33 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
 
         await prefs.setBool('is_logged_in', true);
+
+        // ======================================
+        // حفظ بيانات المستخدم للاستئذان
+        // ======================================
+
+        // رقم المستخدم
+        await prefs.setInt(
+          'user_id',
+          userData['id'],
+        );
+
+
+        // رقم المعلم
+        // نستخدم id المستخدم لأنه هو المرتبط بالمعلم
+        await prefs.setInt(
+          'teacher_id',
+          userData['id'],
+        );
+
+
+        // رقم المدرسة
+        await prefs.setInt(
+          'school_id',
+          int.parse(
+            userData['school_id'].toString(),
+          ),
+        );
 
         print("LOGIN USER ID: $userId");
 
@@ -338,18 +380,46 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 30),
 
-                        TextField(
-                          controller: phoneController,
-                          keyboardType: TextInputType.phone,
-                          decoration: InputDecoration(
-                            labelText: 'رقم الهاتف',
-                            prefixIcon: const Icon(Icons.phone),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                        ),
+                        Row(
+                          children: [
 
+                            Container(
+                              height: 60,
+                              padding: const EdgeInsets.symmetric(horizontal: 15),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '+968',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 10),
+
+                            Expanded(
+                              child: TextField(
+                                controller: phoneController,
+                                keyboardType: TextInputType.phone,
+                                maxLength: 8,
+                                decoration: InputDecoration(
+                                  labelText: 'رقم الهاتف',
+                                  counterText: '',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          ],
+                        ),
                         const SizedBox(height: 16),
 
                         TextField(

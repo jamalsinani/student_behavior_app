@@ -7,8 +7,8 @@ class AppColors {
   static const Color secondary = Color(0xFF10B981);
 
   /// 👨‍🏫 ألوان المعلم
-  static const Color teacherPrimary = Color(0xFF2563EB);
-  static const Color teacherSecondary = Color(0xFF60A5FA);
+  static const Color teacherPrimary = Color(0xff0f2027);
+  static const Color teacherSecondary = Color(0xff2c5364);
 
   /// 👨‍👧 ألوان ولي الأمر
   static const Color parentPrimary = Color(0xFF064E3B);

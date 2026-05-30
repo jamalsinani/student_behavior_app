@@ -18,6 +18,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> sendRequest() async {
 
     if (phoneController.text.isEmpty) {
+    
+    if (phoneController.text.trim().length != 8) {
+
+      Flushbar(
+        message: "يرجى إدخال رقم الهاتف بشكل صحيح",
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.red,
+        margin: const EdgeInsets.all(12),
+        borderRadius: BorderRadius.circular(12),
+      ).show(context);
+
+      return;
+    }
 
       Flushbar(
   message: "يرجى إدخال رقم الهاتف",
@@ -35,7 +48,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     try {
 
       final result = await AuthService.forgotPassword(
-        phone: phoneController.text.trim(),
+        phone: '968${phoneController.text.trim()}',
       );
 
       setState(() => isLoading = false);
@@ -113,17 +126,46 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 30),
 
                 /// 📱 رقم الهاتف
-                TextField(
-                  controller: phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: "رقم الهاتف",
-                    prefixIcon: const Icon(Icons.phone),
-                    border: OutlineInputBorder(
+                Row(
+                children: [
+
+                  Container(
+                    height: 60,
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(14),
                     ),
+                    child: const Center(
+                      child: Text(
+                        '+968',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 8,
+                      decoration: InputDecoration(
+                        labelText: "رقم الهاتف",
+                        counterText: '',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                ],
+              ),
 
                 const SizedBox(height: 30),
 
@@ -145,98 +187,98 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 20),
 
                 /// 📢 تنبيه للمستخدم
-Container(
-  width: double.infinity,
-  padding: const EdgeInsets.all(16),
-  margin: const EdgeInsets.only(top: 10),
-  decoration: BoxDecoration(
-    gradient: LinearGradient(
-      colors: [
-        Colors.orange.shade100,
-        Colors.orange.shade50,
-      ],
-    ),
-    borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: Colors.orange.shade300),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.orange.withOpacity(0.2),
-        blurRadius: 10,
-        offset: const Offset(0,4),
-      )
-    ],
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(top: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.orange.shade100,
+                        Colors.orange.shade50,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.orange.shade300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0,4),
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-      Row(
-        children: const [
-          Icon(Icons.info_outline, color: Colors.orange),
-          SizedBox(width: 8),
-          Text(
-            "تنبيه مهم",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.orange,
-            ),
-          ),
-        ],
-      ),
+                      Row(
+                        children: const [
+                          Icon(Icons.info_outline, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Text(
+                            "تنبيه مهم",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
 
-      const SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
-      const Text(
-        "بعد إرسال الطلب  سيتم تنفيذ الإجراءات التالية:",
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+                      const Text(
+                        "بعد إرسال الطلب  سيتم تنفيذ الإجراءات التالية:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
 
-      const SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
-      const Row(
-        children: [
-          Icon(Icons.check_circle, size: 18, color: Colors.green),
-          SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              "يتم إرسال الطلب لإدارة المدرسة للمراجعة.",
-            ),
-          ),
-        ],
-      ),
+                      const Row(
+                        children: [
+                          Icon(Icons.check_circle, size: 18, color: Colors.green),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              "يتم إرسال الطلب لإدارة المدرسة للمراجعة.",
+                            ),
+                          ),
+                        ],
+                      ),
 
-      const SizedBox(height: 6),
+                      const SizedBox(height: 6),
 
-      const Row(
-        children: [
-          Icon(Icons.check_circle, size: 18, color: Colors.green),
-          SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              "سيتم إنشاء كلمة مرور جديدة للحساب.",
-            ),
-          ),
-        ],
-      ),
+                      const Row(
+                        children: [
+                          Icon(Icons.check_circle, size: 18, color: Colors.green),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              "سيتم إنشاء كلمة مرور جديدة للحساب.",
+                            ),
+                          ),
+                        ],
+                      ),
 
-      const SizedBox(height: 6),
+                      const SizedBox(height: 6),
 
-      const Row(
-        children: [
-          Icon(Icons.check_circle, size: 18, color: Colors.green),
-          SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              "سيتم إرسال كلمة المرور الجديدة عبر واتساب الرقم المسجل في النظام.",
-            ),
-          ),
-        ],
-      ),
+                      const Row(
+                        children: [
+                          Icon(Icons.check_circle, size: 18, color: Colors.green),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              "سيتم إرسال كلمة المرور الجديدة عبر واتساب الرقم المسجل في النظام.",
+                            ),
+                          ),
+                        ],
+                      ),
 
-    ],
-  ),
-),
+                    ],
+                  ),
+                ),
 
                 /// 🔙 العودة
                 TextButton(

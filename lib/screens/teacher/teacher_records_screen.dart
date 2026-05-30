@@ -235,18 +235,36 @@ class _TeacherRecordsScreenState
         Color color;
 
         switch (item['type']) {
-          case 'coverage':
-            color = Colors.red;
-            break;
-          case 'admin_note':
-            color = Colors.orange;
-            break;
-            case 'admin_message':
-            color = Colors.blue;
-            break;
-          default:
-            color = Colors.grey;
-        }
+
+        // 🔴 تغطية حصة
+        case 'coverage':
+          color = Colors.red;
+          break;
+
+
+        // 🟠 ملاحظة إدارية
+        case 'admin_note':
+          color = Colors.orange;
+          break;
+
+
+        // 🔵 رسالة من الإدارة
+        case 'admin_message':
+          color = Colors.blue;
+          break;
+
+
+        // 🟣 استئذان خروج
+        case 'permission':
+          color = Colors.purple;
+          break;
+
+
+        // ⚪ غير معروف
+        default:
+          color = Colors.grey;
+
+      }
 
         return _myRecordCard(
           title: item['title'].toString(),

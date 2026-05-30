@@ -37,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   try {
 
     final result = await AuthService.checkPhone(
-      phoneController.text.trim(),
+      '968${phoneController.text.trim()}',
     );
 
     print(result);
@@ -230,7 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final result = await AuthService.registerUser(
         
         name: fullName,
-        phone: phoneController.text.trim(),
+        phone: '968${phoneController.text.trim()}',
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
         type: accountTypeValue,
@@ -266,7 +266,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   try {
 
     final result = await AuthService.addRole(
-      phone: phoneController.text.trim(),
+      phone: '968${phoneController.text.trim()}',
       password: passwordController.text.trim(),
       role: accountTypeValue,
     );
@@ -322,18 +322,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 if (step == 1) ...[
                   const SizedBox(height: 20),
 
-                  TextField(
-                    controller: phoneController,
-                    decoration: InputDecoration(
-                      labelText: 'رقم الهاتف',
-                      prefixIcon: const Icon(Icons.phone),
-                      border: OutlineInputBorder(
+                  Row(
+                  children: [
+
+                    Container(
+                      height: 60,
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(14),
                       ),
+                      child: const Center(
+                        child: Text(
+                          '+968',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     ),
-                    keyboardType: TextInputType.phone,
-                  ),
 
+                    const SizedBox(width: 10),
+
+                    Expanded(
+                      child: TextField(
+                        controller: phoneController,
+                        keyboardType: TextInputType.phone,
+                        maxLength: 8,
+                        decoration: InputDecoration(
+                          labelText: 'رقم الهاتف',
+                          counterText: '',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  ],
+                ),
                   const SizedBox(height: 24),
 
                   SizedBox(

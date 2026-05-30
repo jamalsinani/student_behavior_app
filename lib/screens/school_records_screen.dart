@@ -129,6 +129,9 @@ class _SchoolRecordsScreenState extends State<SchoolRecordsScreen> {
 
                       bool isSwap =
                           item["source"] == "swap_request";
+                      
+                      bool isPermission =
+                          item["source"] == "teacher_permission";
 
                       return Container(
 
@@ -139,11 +142,20 @@ class _SchoolRecordsScreenState extends State<SchoolRecordsScreen> {
                         decoration: BoxDecoration(
 
                           gradient: LinearGradient(
-                            colors: isSwap
+                            colors: isPermission
+
+                            ? [
+                                Colors.deepPurple,
+                                Colors.purpleAccent,
+                              ]
+
+                            : isSwap
+
                                 ? [
                                     const Color(0xfff7971e),
                                     const Color(0xffffd200)
                                   ]
+
                                 : [
                                     const Color(0xff2193b0),
                                     const Color(0xff6dd5ed)
@@ -171,7 +183,15 @@ class _SchoolRecordsScreenState extends State<SchoolRecordsScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                isSwap ? Icons.swap_horiz : Icons.mail,
+                                isPermission
+
+                                ? Icons.exit_to_app
+
+                                : isSwap
+
+                                    ? Icons.swap_horiz
+
+                                    : Icons.mail,
                                 color: Colors.white,
                                 size: 26,
                               ),
@@ -180,7 +200,57 @@ class _SchoolRecordsScreenState extends State<SchoolRecordsScreen> {
                             const SizedBox(width: 15),
 
                             Expanded(
-                              child: isSwap
+                              child: isPermission
+
+                                ? Column(
+
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+
+                                    children: [
+
+                                      Text(
+
+                                        item["original_teacher"] ?? "-",
+
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+
+                                      ),
+
+                                      const SizedBox(height: 6),
+
+                                      Text(
+
+                                          "استئذان معلم (${item["permission_date"] ?? ""})",
+
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                          ),
+
+                                        ),
+                                      const SizedBox(height: 6),
+
+                                      Text(
+
+                                        item["message"] ?? "",
+
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                        ),
+
+                                      ),
+
+                                    ],
+
+                                  )
+
+                                : isSwap
 
                                   /// ================= طلب تبديل =================
                                   ? Row(
