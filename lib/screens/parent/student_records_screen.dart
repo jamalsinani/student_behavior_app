@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/parent_service.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 class StudentRecordsScreen extends StatefulWidget {
 
@@ -154,12 +155,53 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     }
   }
 
+  Future<void> markReportSeen(Map report) async {
+
+  if (report["parent_seen"] == 1) {
+    return;
+  }
+
+  final result = await ParentService.markReportSeen(
+    reportId: report["id"].toString(),
+  );
+
+  if (result["status"] == true) {
+
+    setState(() {
+
+      report["parent_seen"] = 1;
+
+      report["parent_seen_at"] =
+          DateTime.now().toString();
+
+    });
+
+    Flushbar(
+      message: "✓ تم تسجيل إطلاعكم على التقرير",
+      duration: const Duration(seconds: 2),
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: Colors.green,
+      icon: const Icon(
+        Icons.check_circle,
+        color: Colors.white,
+      ),
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+    ).show(context);
+
+  }
+}
+
   Widget buildReportCard(report) {
 
     final type = report["report_type"] ?? "";
+    final bool canMarkSeen = report["id"] != null;
     final color = getColor(type);
 
-    return Container(
+    return Stack(
+    children: [
+
+     Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -238,9 +280,46 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             ),
           )
         ],
+           ),
+    ),
+
+      if (canMarkSeen)
+      Positioned(
+      top: 2,
+      left: 18,
+      child: GestureDetector(
+        onTap: () {
+          markReportSeen(report);
+        },
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: report["parent_seen"].toString() == "1"
+                ? Colors.green
+                : Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 6,
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.thumb_up,
+            color: report["parent_seen"].toString() == "1"
+                ? Colors.white
+                : Colors.green,
+            size: 20,
+          ),
+        ),
       ),
-    );
-  }
+    ),
+
+  ],
+);
+}
 
   /// اسم اليوم
   String getDayName(String date) {

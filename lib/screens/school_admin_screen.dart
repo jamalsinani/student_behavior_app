@@ -8,6 +8,7 @@ import 'school_send_message_screen.dart';
 import 'school_send_teacher_message_screen.dart';
 import 'school_sent_notifications_screen.dart';
 import 'school_settings_screen.dart';
+import '../widgets/app_refresh_widget.dart';
 
 class SchoolAdminScreen extends StatefulWidget {
   const SchoolAdminScreen({super.key});
@@ -20,19 +21,35 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
 
   List notifications = [];
   bool isLoading = true;
+  String schoolLogo = '';
+  String schoolName = 'المدرسة';
 
   @override
   void initState() {
     super.initState();
+    loadSchoolData();
     loadNotifications();
+  }
+
+  Future<void> loadSchoolData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      schoolLogo = prefs.getString('school_logo') ?? '';
+      schoolName = prefs.getString('school_name') ?? 'المدرسة';
+    });
   }
 
   Future<void> loadNotifications() async {
 
-    try {
+  try {
 
-      final data =
-    await SchoolNotificationService.fetchNotifications(1);
+    final prefs = await SharedPreferences.getInstance();
+
+    final schoolId = prefs.getInt('school_id') ?? 0;
+
+    final data =
+        await SchoolNotificationService.fetchNotifications(schoolId);
 
 
       // اختبار البيانات القادمة
@@ -71,7 +88,13 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
     return Scaffold(
       backgroundColor: const Color(0xfff4f6fb),
 
-      body: SingleChildScrollView(
+      body: AppRefreshWidget(
+      onRefresh: () async {
+        await loadSchoolData();
+        await loadNotifications();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
 
@@ -176,17 +199,23 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
                   const SizedBox(height: 10),
 
                   /// 🔹 صورة المدرسة
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundImage:
-                        AssetImage("assets/images/default_school.png"),
-                  ),
+                  CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.white,
+                      backgroundImage: schoolLogo.isNotEmpty
+                          ? NetworkImage(
+                              "https://abuobaida-edu.com/public/images/school/$schoolLogo",
+                            )
+                          : const AssetImage(
+                              "assets/images/default_school.png",
+                            ) as ImageProvider,
+                    ),
 
                   const SizedBox(height: 15),
 
                   /// 🔹 اسم المدرسة
-                  const Text(
-                    "مدرسة الشيخ ابو عبيدة عبدالله بن محمد البلوشي",
+                  Text(
+                      schoolName,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -195,7 +224,7 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
 
                   /// 🔹 الوصف
                   const Text(
@@ -208,11 +237,9 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
                 ],
               ),
             ),
-
+            const SizedBox(height: 15),
             /// ================= الإشعارات =================
             _sectionTitle("الإشعارات"),
-const SizedBox(height: 15),
-
 Padding(
   padding: const EdgeInsets.symmetric(horizontal: 20),
   child: isLoading
@@ -345,7 +372,7 @@ Padding(
                                           children: [
 
                                             const Text(
-                                              "المعلم الأصلي",
+                                              "المعلم الأساسي",
                                               style: TextStyle(
                                                   fontSize: 11,
                                                   color: Colors.white70),
@@ -363,6 +390,14 @@ Padding(
                                               style: const TextStyle(
                                                   fontSize: 11,
                                                   color: Colors.white70),
+                                            ),
+
+                                            Text(
+                                              "${item["original_date"] ?? "-"}",
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.white70,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -536,7 +571,7 @@ const SizedBox(height: 30),
           Expanded(
             child: _actionCard(
               icon: Icons.school,
-              title: "اشعارات الطلاب",
+              title: "إشعارات الطلاب",
               color: Colors.green,
               onTap: () {
 
@@ -556,7 +591,7 @@ const SizedBox(height: 30),
           Expanded(
             child: _actionCard(
               icon: Icons.person,
-              title: "اشعارات المعلمين",
+              title: "إشعارات المعلمين",
               color: const Color(0xff203a43),
               onTap: () {
 
@@ -630,8 +665,9 @@ const SizedBox(height: 30),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _sectionTitle(String title) {
 

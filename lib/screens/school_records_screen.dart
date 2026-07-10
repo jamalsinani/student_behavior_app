@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SchoolRecordsScreen extends StatefulWidget {
   const SchoolRecordsScreen({super.key});
@@ -13,6 +14,7 @@ class _SchoolRecordsScreenState extends State<SchoolRecordsScreen> {
 
   List records = [];
   bool isLoading = true;
+  int? schoolId;
 
   @override
   void initState() {
@@ -24,8 +26,20 @@ class _SchoolRecordsScreenState extends State<SchoolRecordsScreen> {
 
     try {
 
+      final prefs = await SharedPreferences.getInstance();
+      schoolId = prefs.getInt('school_id');
+
+      if (schoolId == null) {
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
       final response = await http.get(
-        Uri.parse("https://abuobaida-edu.com/api/school/records/1"),
+        Uri.parse(
+  "https://abuobaida-edu.com/api/school/records/$schoolId",
+        )
       );
 
       final data = json.decode(response.body);
@@ -112,13 +126,23 @@ class _SchoolRecordsScreenState extends State<SchoolRecordsScreen> {
 
           /// ================= قائمة السجلات =================
           Expanded(
-
             child: isLoading
-
-                ? const Center(child: CircularProgressIndicator())
-
-                : ListView.builder(
-
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : records.isEmpty
+                    ? const Center(
+                        child: Text(
+                          "لا توجد إشعارات مستقبلة حالياً",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                      
                     padding: const EdgeInsets.symmetric(horizontal: 20),
 
                     itemCount: records.length,

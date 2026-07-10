@@ -11,7 +11,15 @@ import 'forgot_password_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+
+  final String schoolName;
+  final String schoolLogo;
+
+  const LoginScreen({
+    super.key,
+    this.schoolName = '',
+    this.schoolLogo = '',
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -24,6 +32,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isLoading = false;
   bool rememberMe = false;
+
+  String selectedCountryCode = '968';
+
+  final List<Map<String, String>> countries = [
+    {'name': 'عُمان', 'code': '968'},
+    {'name': 'السعودية', 'code': '966'},
+    {'name': 'الإمارات', 'code': '971'},
+    {'name': 'قطر', 'code': '974'},
+    {'name': 'البحرين', 'code': '973'},
+    {'name': 'الكويت', 'code': '965'},
+    {'name': 'مصر', 'code': '20'},
+    {'name': 'الأردن', 'code': '962'},
+    {'name': 'العراق', 'code': '964'},
+    {'name': 'سوريا', 'code': '963'},
+  ];
 
   @override
   void initState() {
@@ -59,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (phoneController.text.isEmpty ||
         passwordController.text.isEmpty) {
-          if (phoneController.text.trim().length != 8) {
+          if (phoneController.text.trim().length < 8) {
             Flushbar(
               message: "يرجى إدخال رقم الهاتف بشكل صحيح",
               duration: const Duration(seconds: 3),
@@ -87,21 +110,43 @@ class _LoginScreenState extends State<LoginScreen> {
       try {
 
         final String phoneNumber =
-        '968${phoneController.text.trim()}';
-
+        '$selectedCountryCode${phoneController.text.trim()}';
+        
         final response = await AuthService.loginUser(
           phone: phoneNumber,
           password: passwordController.text.trim(),
         );
 
         final userData = response['data'];
+
+        print("================================");
+        print(userData);
+        print("================================");
+
         final int userId = userData['id'];
         final List roles = userData['roles'] ?? [];
 
         final prefs = await SharedPreferences.getInstance();
 
-        await prefs.setBool('is_logged_in', true);
+        await prefs.setString(
+          'school_logo',
+          userData['school_logo'] ?? '',
+        );
 
+        await prefs.setString(
+          'school_name',
+          userData['school_name'] ?? '',
+        );
+
+        await prefs.setString(
+          'support_whatsapp',
+          userData['support_whatsapp'] ?? '',
+        );
+        await prefs.setBool('is_logged_in', true);
+        await prefs.setStringList(
+          'roles',
+          roles.map((e) => e.toString()).toList(),
+        );
         // ======================================
         // حفظ بيانات المستخدم للاستئذان
         // ======================================
@@ -325,33 +370,73 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
 
-              Container(
-                height: 110,
-                width: 110,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 20,
-                      offset: Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
+              Stack(
+  alignment: Alignment.center,
+  clipBehavior: Clip.none,
+  children: [
+
+    /// شعار المنصة
+    Container(
+      height: 110,
+      width: 110,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Image.asset(
+            'assets/images/platform_logo.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    ),
+
+    /// شعار المدرسة
+    if (widget.schoolLogo.isNotEmpty)
+      Positioned(
+        top: 50,
+        right: -30,
+        child: Container(
+          width: 46,
+          height: 46,
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white,
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
               ),
-
+            ],
+          ),
+          child: ClipOval(
+            child: Image.network(
+              widget.schoolLogo,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
+  ],
+),
+               
               const SizedBox(height: 40),
 
               Expanded(
@@ -378,28 +463,85 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 12),
 
+                        FutureBuilder<SharedPreferences>(
+                        future: SharedPreferences.getInstance(),
+                        builder: (context, snapshot) {
+
+                          if (!snapshot.hasData) {
+                            return const SizedBox();
+                          }
+
+                          final schoolName = widget.schoolName;
+
+                          if (schoolName.isEmpty) {
+                            return const SizedBox();
+                          }
+
+                          return Column(
+                            children: [
+
+                              const Text(
+                                'مخصص لمنسوبي مدرسة',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              Text(
+                                schoolName,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                            ],
+                          );
+                        },
+                      ),
                         Row(
                           children: [
 
                             Container(
-                              height: 60,
-                              padding: const EdgeInsets.symmetric(horizontal: 15),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  '+968',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                height: 60,
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: selectedCountryCode,
+                                    isDense: true,
+                                    items: countries.map((country) {
+                                      return DropdownMenuItem<String>(
+                                        value: country['code'],
+                                        child: Text(
+                                          "+${country['code']}",
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedCountryCode = value!;
+                                      });
+                                    },
                                   ),
                                 ),
                               ),
-                            ),
 
                             const SizedBox(width: 10),
 
@@ -407,7 +549,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextField(
                                 controller: phoneController,
                                 keyboardType: TextInputType.phone,
-                                maxLength: 8,
+                                maxLength: 11,
                                 decoration: InputDecoration(
                                   labelText: 'رقم الهاتف',
                                   counterText: '',

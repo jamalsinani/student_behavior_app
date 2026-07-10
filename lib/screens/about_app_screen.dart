@@ -6,211 +6,374 @@ class AboutAppScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfff4f6fb),
+      backgroundColor: const Color(0xfff5f7fb),
 
-      body: Column(
-        children: [
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
 
           /// ================= الهيدر =================
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(30, 70, 30, 40),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xff0f2027),
-                  Color(0xff203a43),
-                  Color(0xff2c5364),
-                ],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
-              ),
-            ),
-            child: Row(
-              children: [
+          SliverAppBar(
+            expandedHeight: 320,
+            pinned: true,
+            elevation: 0,
+            backgroundColor: const Color(0xff203A43),
 
-                InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.arrow_back, color: Colors.white),
-                  ),
+            leading: Padding(
+            padding: const EdgeInsets.all(8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
                 ),
-
-                const SizedBox(width: 15),
-
-                const Text(
-                  "عن التطبيق",
-                  style: TextStyle(
+                child: const Center(
+                  child: Icon(
+                    Icons.arrow_back,
                     color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    size: 22,
                   ),
                 ),
-
-              ],
+              ),
             ),
           ),
 
-          const SizedBox(height: 25),
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+
+              title: const Text(
+                "عن التطبيق",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xff0F2027),
+                      Color(0xff203A43),
+                      Color(0xff2C5364),
+                    ],
+                  ),
+                ),
+
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+
+                    const SizedBox(height: 40),
+
+                    Container(
+                    width: 120,
+                    height: 120,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(35),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 25,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      "assets/images/platform_logo.png",
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      "EduBehave Platform",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      "منصة رقمية متكاملة لإدارة التواصل",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(.9),
+                        fontSize: 14,
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+          ),
 
           /// ================= المحتوى =================
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
 
-                  /// الشعار
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 15,
-                        )
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.school,
-                      size: 50,
-                      color: Color(0xff203a43),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  /// اسم المدرسة
-                  const Text(
-                    "مدرسة الشيخ أبو عبيدة عبدالله بن محمد البلوشي (5-9)",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
                   /// نبذة
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 12,
-                        )
-                      ],
-                    ),
-                    child: const Text(
-                      "يهدف التطبيق إلى تعزيز التواصل بين المدرسة وأولياء الأمور والمعلمين، وتقديم تجربة رقمية متكاملة لإدارة السلوك الطلابي.\n\nيساهم في متابعة الأداء اليومي للطلاب بشكل ذكي وسريع، مما يدعم العملية التعليمية ويعزز الانضباط المدرسي.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.6,
-                      ),
-                    ),
+                  _sectionCard(
+                    title: "نبذة عن التطبيق",
+                    icon: Icons.info_outline_rounded,
+                    content:
+                        "يهدف التطبيق إلى تعزيز التواصل بين المدرسة وأولياء الأمور والمعلمين، وتوفير منصة ذكية لمتابعة السلوك الطلابي والإنجازات اليومية بشكل فوري وآمن.",
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 18),
 
-                  /// معلومات التطبيق
-                  _infoCard(
-                    title: "مصمم التطبيق",
-                    value: "جمال السناني",
-                    icon: Icons.person,
+                  /// الأهداف
+                  _sectionCard(
+                    title: "أهداف التطبيق",
+                    icon: Icons.flag_outlined,
+                    content:
+                        "• تعزيز الانضباط المدرسي\n\n"
+                        "• تحسين التواصل مع أولياء الأمور\n\n"
+                        "• متابعة الأداء السلوكي للطلاب\n\n"
+                        "• دعم اتخاذ القرار التربوي",
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  /// المميزات
+                  _sectionCard(
+                    title: "مميزات التطبيق",
+                    icon: Icons.star_outline_rounded,
+                    content:
+                        "• إشعارات فورية\n\n"
+                        "• متابعة السلوك اليومي\n\n"
+                        "• عرض الإنجازات والشهادات\n\n"
+                        "• التواصل مع المدرسة\n\n"
+                        "• واجهة سهلة وسريعة",
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  /// بطاقات المعلومات
+                  Row(
+                    children: [
+
+                      Expanded(
+                        child: _statCard(
+                          icon: Icons.person,
+                          title: "المطور",
+                          value: "جمال السناني",
+                        ),
+                      ),
+
+                      const SizedBox(width: 15),
+
+                      Expanded(
+                        child: _statCard(
+                          icon: Icons.verified,
+                          title: "الإصدار",
+                          value: "1.0.1",
+                        ),
+                      ),
+
+                    ],
                   ),
 
                   const SizedBox(height: 15),
 
-                  _infoCard(
-                    title: "رقم التطبيق",
-                    value: "001/2026",
-                    icon: Icons.confirmation_number,
+                  Row(
+                    children: [
+
+                      Expanded(
+                        child: _statCard(
+                          icon: Icons.code,
+                          title: "رقم النظام",
+                          value: "38",
+                        ),
+                      ),
+
+                      const SizedBox(width: 15),
+
+                      Expanded(
+                        child: _statCard(
+                          icon: Icons.calendar_month,
+                          title: "سنة الإصدار",
+                          value: "2026",
+                        ),
+                      ),
+
+                    ],
                   ),
 
                   const SizedBox(height: 30),
 
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xff203A43),
+                          Color(0xff2C5364),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: const Column(
+                      children: [
+
+                        Icon(
+                          Icons.favorite,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+
+                        SizedBox(height: 10),
+
+                        Text(
+                          "صنع بعناية لخدمة البيئة التعليمية",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
                 ],
               ),
             ),
-          )
+          ),
 
         ],
       ),
     );
   }
 
-  /// ================= كرت معلومات =================
-  Widget _infoCard({
+  static Widget _sectionCard({
     required String title,
-    required String value,
     required IconData icon,
+    required String content,
   }) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-          )
+            color: Colors.black.withOpacity(.05),
+            blurRadius: 15,
+          ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Row(
+            children: [
+
+              Icon(
+                icon,
+                color: const Color(0xff203A43),
+              ),
+
+              const SizedBox(width: 10),
+
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+            ],
+          ),
+
+          const SizedBox(height: 15),
+
+          Text(
+            content,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.8,
+            ),
+          ),
+
+        ],
+      ),
+    );
+  }
+
+  static Widget _statCard({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 20,
+        horizontal: 15,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.05),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: Column(
         children: [
 
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xff203a43).withOpacity(0.1),
+              color: const Color(0xff203A43).withOpacity(.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xff203a43)),
+            child: Icon(
+              icon,
+              color: const Color(0xff203A43),
+            ),
           ),
 
-          const SizedBox(width: 15),
+          const SizedBox(height: 12),
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.black54,
+              fontSize: 13,
+            ),
+          ),
 
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.black54,
-                  ),
-                ),
+          const SizedBox(height: 6),
 
-                const SizedBox(height: 5),
-
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-              ],
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
             ),
           ),
 

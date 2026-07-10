@@ -22,6 +22,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
   List students = [];
   List notes = [];
 
+  String schoolCountry = '';
+
   bool isLoading = true;
 
   String getGreeting() {
@@ -39,29 +41,36 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
 
   Future<void> loadStudents() async {
 
-    try {
+  try {
 
-      final phone = widget.userData['phone'].toString();
-      final schoolId = widget.userData['school_id'].toString();
+    final phone = widget.userData['phone'].toString();
+    final schoolId = widget.userData['school_id'].toString();
 
-      final data = await ParentService.getChildren(
-        phone: phone,
-        schoolId: schoolId,
-      );
+    final data = await ParentService.getChildren(
+      phone: phone,
+      schoolId: schoolId,
+    );
 
-      setState(() {
-        students = data;
-        isLoading = false;
-      });
+    setState(() {
 
-    } catch (e) {
+      students = data['students'] ?? [];
 
-      setState(() {
-        isLoading = false;
-      });
+      schoolCountry =
+          (data['country'] ?? '').toString();
+          print("COUNTRY = $schoolCountry");
 
-    }
+      isLoading = false;
+
+    });
+
+  } catch (e) {
+
+    setState(() {
+      isLoading = false;
+    });
+
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +116,19 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
                   backgroundColor: Colors.white,
                   child: ClipOval(
                     child: Image.asset(
-                      'assets/images/parent_icon.png',
+
+                      schoolCountry == 'Oman'
+                          ? 'assets/images/parent_omani.png'
+                          : [
+                              'Saudi Arabia',
+                              'UAE',
+                              'Qatar',
+                              'Kuwait',
+                              'Bahrain'
+                            ].contains(schoolCountry)
+                              ? 'assets/images/parent_gulf.png'
+                              : 'assets/images/parent_foreign.png',
+
                       width: 45,
                       height: 45,
                       fit: BoxFit.cover,

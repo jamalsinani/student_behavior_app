@@ -59,6 +59,13 @@ int selectedDay = () {
       loading = true;
     });
 
+    print("========== SCHEDULE DEBUG ==========");
+  print("CLASS = ${widget.student["class"]}");
+  print("SECTION = ${widget.student["section"]}");
+  print("SCHOOL_ID = ${widget.student["school_id"]}");
+  print("DAY = $selectedDay");
+  print("===================================");
+  
     final data = await ParentService.getStudentSchedule(
       schoolId: widget.student["school_id"].toString(),
       studentClass: widget.student["class"].toString(),

@@ -9,9 +9,11 @@ import 'teacher_profile_screen.dart';
 import 'teacher_records_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'package:another_flushbar/flushbar.dart';
 import '../school_home_screen.dart';
 import '../school_settings_screen.dart';
+import '../../widgets/app_refresh_widget.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -38,6 +40,13 @@ class _TeacherHomeScreenState
 
   final PageController _coverageController =
       PageController(viewportFraction: 0.9);
+
+  Timer? _notificationTimer;
+
+  final PageController _notificationController =
+      PageController(viewportFraction: 0.92);
+
+  int _currentNotificationPage = 0;
 
   @override
   void initState() {
@@ -208,6 +217,38 @@ class _TeacherHomeScreenState
         isLoading = false;
       });
 
+      final totalNotifications =
+    notes.length +
+    coverages.length +
+    swapRequests.length +
+    swapResponses.length +
+    adminMessages.length;
+
+_notificationTimer?.cancel();
+
+if (totalNotifications > 1) {
+
+  _notificationTimer = Timer.periodic(
+    const Duration(seconds: 3),
+    (timer) {
+
+      if (!_notificationController.hasClients) return;
+
+      _currentNotificationPage++;
+
+      if (_currentNotificationPage >= totalNotifications) {
+        _currentNotificationPage = 0;
+      }
+
+      _notificationController.animateToPage(
+        _currentNotificationPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    },
+  );
+}
+
     } catch (e) {
       print("HOME ERROR: $e");
       setState(() => isLoading = false);
@@ -280,6 +321,30 @@ class _TeacherHomeScreenState
         widget.userData?['subject_name'] ??
             "غير محدد";
 
+   final country =
+    widget.userData?['school_country']
+        ?.toString() ??
+    "";
+
+String teacherImage;
+
+if (country == "Oman") {
+  teacherImage =
+      "assets/images/omani_teacher.png";
+}
+else if (
+    country == "Saudi Arabia" ||
+    country == "United Arab Emirates" ||
+    country == "Qatar" ||
+    country == "Kuwait" ||
+    country == "Bahrain") {
+  teacherImage =
+      "assets/images/gulf_teacher.png";
+}
+else {
+  teacherImage =
+      "assets/images/foreign_teacher.png";
+}
     return Scaffold(
       backgroundColor:
           const Color(0xffF3F6FB),
@@ -310,57 +375,75 @@ class _TeacherHomeScreenState
                   ),
                 ),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    /// 🔹 بيانات المعلم
-                    Expanded(
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 34,
-                            backgroundColor: Colors.white,
-                            child: ClipOval(
-                              child: Image.asset(
-                                'assets/images/omani_teacher.png',
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
+                      Expanded(
+                        child: Row(
+                          children: [
+
+                            Container(
+                              width: 68,
+                              height: 68,
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  teacherImage,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  getGreeting(),
-                                  style: const TextStyle(color: Colors.white70),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  teacherName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
+
+                            const SizedBox(width: 18),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    getGreeting(),
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  subjectName,
-                                  style: const TextStyle(color: Colors.white70),
-                                ),
-                              ],
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    teacherName,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    subjectName,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+
+                          ],
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(width: 10),
-
+                      const SizedBox(width: 10),
                     /// 🔹 الأزرار (مرفوعة + مصغرة)
                     Align(
                       alignment: Alignment.topCenter,
@@ -436,7 +519,6 @@ class _TeacherHomeScreenState
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -444,12 +526,13 @@ class _TeacherHomeScreenState
               const SizedBox(height: 20),
 
           Expanded(
-            child: isLoading
-                ? const Center(
-                    child:
-                        CircularProgressIndicator(),
-                  )
-                : ListView(
+          child: isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : AppRefreshWidget(
+                  onRefresh: loadData,
+                  child: ListView(
                     padding:
                         const EdgeInsets.symmetric(
                             horizontal: 20),
@@ -488,7 +571,7 @@ class _TeacherHomeScreenState
             ),
           )
         : PageView.builder(
-            controller: PageController(viewportFraction: 0.92),
+          controller: _notificationController,
             
             itemCount:
                 swapRequests.length +
@@ -597,7 +680,7 @@ if (index < swapRequests.length) {
             ),
           ],
         ),
-
+      
         const SizedBox(height: 10),
 
         /// الصف والشعبة
@@ -992,11 +1075,10 @@ if (index <
                                       ],
                                     ),
                                   );
-            },
-          ),
-                      ),
-
-
+                            },
+                          ),
+                      ), 
+                   
 
                       const SizedBox(height: 20),
 
@@ -1115,13 +1197,16 @@ if (index <
                         ],  
                         ),
 
-                      const SizedBox(height: 20),
+                                            const SizedBox(height: 20),
                     ],
-                  ),      
-          ),
+                  ), // نهاية ListView
+
+                ), // نهاية AppRefreshWidget
+
+          ), // نهاية Expanded
 
 
-        ], 
+        ],
       ),
     );
     
@@ -1206,7 +1291,15 @@ if (index <
     
 @override
 void dispose() {
+
+  _notificationTimer?.cancel();
+
+  _notificationController.dispose();
+
   _notesController.dispose();
+
+  _coverageController.dispose();
+
   super.dispose();
 }
 

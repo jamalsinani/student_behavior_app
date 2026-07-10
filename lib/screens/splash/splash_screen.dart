@@ -23,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> checkLogin() async {
 
     final prefs = await SharedPreferences.getInstance();
-
+    final schoolId = prefs.getInt('school_id');
     final remember = prefs.getBool('remember_me') ?? false;
     final savedPhone = prefs.getString('saved_phone');
     final savedPassword = prefs.getString('saved_password');

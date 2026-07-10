@@ -5,37 +5,38 @@ class ParentService {
 
   static const String baseUrl = "https://abuobaida-edu.com/api";
 
-  static Future<List> getChildren({
-    required String phone,
-    required String schoolId,
-  }) async {
+  static Future<Map<String, dynamic>> getChildren({
+  required String phone,
+  required String schoolId,
+}) async {
 
-    final uri = Uri.parse(
-      "$baseUrl/parent/students",
-    ).replace(queryParameters: {
-      "guardian_phone": phone,
-      "school_id": schoolId,
-    });
+  final uri = Uri.parse(
+    "$baseUrl/parent/students",
+  ).replace(queryParameters: {
+    "guardian_phone": phone,
+    "school_id": schoolId,
+  });
 
-    final response = await http.get(uri);
+  final response = await http.get(uri);
 
-    print("PARENT API STATUS: ${response.statusCode}");
-    print("PARENT API BODY: ${response.body}");
+  print("PARENT API STATUS: ${response.statusCode}");
+  print("PARENT API BODY: ${response.body}");
 
-    if (response.statusCode == 200) {
+  if (response.statusCode == 200) {
 
-      final data = json.decode(response.body);
+    final data = json.decode(response.body);
 
-      if (data['status'] == true) {
-        return List.from(data['students']);
-      }
+    return {
+      "country": data['country'],
+      "students": List.from(data['students'] ?? []),
+    };
 
-      return [];
+  } else {
 
-    } else {
-      throw Exception("فشل في جلب الأبناء");
-    }
+    throw Exception("فشل في جلب الأبناء");
+
   }
+}
 
   static Future<List> getStudentSchedule({
   required String schoolId,
@@ -283,6 +284,30 @@ static Future<List> getParentMessages({
     throw Exception("فشل في جلب رسائل الإدارة");
 
   }
+}
+
+/// =============================
+/// تسجيل اطلاع ولي الأمر
+/// =============================
+static Future<Map<String, dynamic>> markReportSeen({
+  required String reportId,
+}) async {
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/parent/report-seen"),
+    body: {
+      "report_id": reportId,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  }
+
+  return {
+    "status": false,
+    "message": "فشل الاتصال بالخادم",
+  };
 }
 
 }

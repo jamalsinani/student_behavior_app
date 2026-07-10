@@ -3,6 +3,7 @@ import 'package:another_flushbar/flushbar.dart';
 import '../services/school_message_service.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SchoolSendMessageScreen extends StatefulWidget {
   const SchoolSendMessageScreen({super.key});
@@ -14,7 +15,7 @@ class SchoolSendMessageScreen extends StatefulWidget {
 
 class _SchoolSendMessageScreenState extends State<SchoolSendMessageScreen> {
 
-  int schoolId = 1;
+  int schoolId = 0;
 
   String sendType = "single";
 
@@ -27,12 +28,25 @@ class _SchoolSendMessageScreenState extends State<SchoolSendMessageScreen> {
   int? selectedStudent;
 
   final TextEditingController messageController = TextEditingController();
+
+  Future<void> loadSchoolId() async {
+
+  final prefs = await SharedPreferences.getInstance();
+
+  schoolId = prefs.getInt('school_id') ?? 0;
+
+  print('CURRENT SCHOOL ID = $schoolId');
+
+  loadClasses();
+}
+
   File? selectedImage;
+  bool isSending = false;
 
   @override
   void initState() {
     super.initState();
-    loadClasses();
+    loadSchoolId();
   }
 
   /// ================= جلب الصفوف =================
@@ -70,6 +84,9 @@ class _SchoolSendMessageScreenState extends State<SchoolSendMessageScreen> {
   /// ================= ارسال رسالة =================
   void sendMessage() async {
 
+  /// منع الضغط المتكرر
+  if (isSending) return;
+
   /// التحقق من اختيار الطالب
   if (sendType == "single" && selectedStudent == null) {
 
@@ -96,56 +113,62 @@ class _SchoolSendMessageScreenState extends State<SchoolSendMessageScreen> {
     return;
   }
 
-  final res = await SchoolMessageService.sendMessage(
-    schoolId: schoolId,
-    studentId: sendType == "single" ? selectedStudent : null,
-    message: messageController.text,
-    type: sendType,
-    image: sendType == "all" ? selectedImage : null,
-  );
+  /// بدء اللودينج بعد نجاح التحقق فقط
+  setState(() {
+    isSending = true;
+  });
 
-  if (res["status"] == true) {
+  try {
 
-    Flushbar(
-      message: res["message"],
-      duration: const Duration(seconds: 3),
-      backgroundColor: Colors.green,
-      flushbarPosition: FlushbarPosition.TOP,
-    ).show(context);
+    final res = await SchoolMessageService.sendMessage(
+      schoolId: schoolId,
+      studentId: sendType == "single" ? selectedStudent : null,
+      message: messageController.text,
+      type: sendType,
+      image: sendType == "all" ? selectedImage : null,
+    );
 
-    /// إعادة ضبط الصفحة
-    setState(() {
-      messageController.clear();
-      selectedImage = null;
-      selectedStudent = null;
-      selectedClass = null;
-      selectedSection = null;
-      students = [];
-      sections = [];
-    });
+    if (res["status"] == true) {
 
-  } else {
+      Flushbar(
+        message: res["message"],
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.green,
+        flushbarPosition: FlushbarPosition.TOP,
+      ).show(context);
 
-    Flushbar(
-      message: res["message"] ?? "فشل إرسال الرسالة",
-      duration: const Duration(seconds: 3),
-      backgroundColor: Colors.red,
-      flushbarPosition: FlushbarPosition.TOP,
-    ).show(context);
+      setState(() {
+        messageController.clear();
+        selectedImage = null;
+        selectedStudent = null;
+        selectedClass = null;
+        selectedSection = null;
+        students = [];
+        sections = [];
+      });
 
-    setState(() {
-      messageController.clear();
-      selectedImage = null;
-      selectedStudent = null;
-      selectedClass = null;
-      selectedSection = null;
-      students = [];
-      sections = [];
-    });
+    } else {
+
+      Flushbar(
+        message: res["message"] ?? "فشل إرسال الرسالة",
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.red,
+        flushbarPosition: FlushbarPosition.TOP,
+      ).show(context);
+
+    }
+
+  } finally {
+
+    if (mounted) {
+      setState(() {
+        isSending = false;
+      });
+    }
 
   }
-}
 
+}
   Future pickImage() async {
 
   final picker = ImagePicker();
@@ -323,16 +346,34 @@ class _SchoolSendMessageScreenState extends State<SchoolSendMessageScreen> {
                   const SizedBox(height: 20),
 
                   SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: sendMessage,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        backgroundColor: const Color(0xff203a43),
+                        width: double.infinity,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: isSending ? null : sendMessage,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            backgroundColor: isSending
+                                ? Colors.orange
+                                : const Color(0xff203a43),
+                          ),
+                          child: isSending
+                              ? const SizedBox(
+                                  width: 25,
+                                  height: 25,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  "إرسال الرسالة",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
                       ),
-                      child: const Text("إرسال الرسالة"),
-                    ),
-                  ),
 
                   const SizedBox(height: 30),
 

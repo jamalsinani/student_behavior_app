@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static const String baseUrl = "https://abuobaida-edu.com/api";
@@ -55,6 +56,13 @@ static Future<Map<String, dynamic>> loginUser({
   required String password,
 }) async {
 
+final prefs = await SharedPreferences.getInstance();
+final schoolId = prefs.getInt('school_id');
+
+if (schoolId == null) {
+  throw Exception("لم يتم اختيار المدرسة");
+}
+
   final response = await http.post(
     Uri.parse("$baseUrl/login"),
     headers: {
@@ -63,6 +71,7 @@ static Future<Map<String, dynamic>> loginUser({
     body: {
       'phone': phone,
       'password': password,
+      'school_id': schoolId.toString(),
     },
   );
 
@@ -202,6 +211,56 @@ static Future<Map<String, dynamic>> deleteAccount({
 
   } else {
     throw Exception("فشل الاتصال بالخادم");
+  }
+}
+
+static Future<Map<String, dynamic>> checkEmailAndPhone({
+  required String email,
+  required String phone,
+}) async {
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/check-email-phone"),
+    headers: {
+      "Accept": "application/json",
+    },
+    body: {
+      'email': email,
+      'phone': phone,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Server Error");
+  }
+}
+
+static Future<Map<String, dynamic>> resetPasswordDirect({
+  required String email,
+  required String phone,
+  required String password,
+  required String passwordConfirmation,
+}) async {
+
+  final response = await http.post(
+    Uri.parse("$baseUrl/reset-password-direct"),
+    headers: {
+      "Accept": "application/json",
+    },
+    body: {
+      'email': email,
+      'phone': phone,
+      'password': password,
+      'password_confirmation': passwordConfirmation,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Server Error");
   }
 }
 

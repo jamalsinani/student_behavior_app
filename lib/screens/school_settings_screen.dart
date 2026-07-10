@@ -7,9 +7,53 @@ import 'school_home_screen.dart';
 import 'about_app_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'teacher/permission_request_screen.dart';
+import 'school_selector_screen.dart';
+import 'package:in_app_review/in_app_review.dart';
 
-class SchoolSettingsScreen extends StatelessWidget {
+class SchoolSettingsScreen extends StatefulWidget {
   const SchoolSettingsScreen({super.key});
+
+  @override
+  State<SchoolSettingsScreen> createState() =>
+      _SchoolSettingsScreenState();
+}
+
+class _SchoolSettingsScreenState
+    extends State<SchoolSettingsScreen> {
+
+  bool isTeacher = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadRole();
+  }
+
+  Future<void> loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final roles =
+        prefs.getStringList('roles') ?? [];
+
+    setState(() {
+      isTeacher = roles.contains('teacher');
+    });
+  }
+
+  Future<void> rateApp() async {
+
+  final InAppReview inAppReview = InAppReview.instance;
+
+  try {
+
+    if (await inAppReview.isAvailable()) {
+      await inAppReview.requestReview();
+    }
+
+  } catch (_) {}
+
+  await inAppReview.openStoreListing();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -111,47 +155,62 @@ class SchoolSettingsScreen extends StatelessWidget {
                       );
                     },
                   ),
-
+                  
                   const SizedBox(height: 15),
 
-                  _settingCard(
-                  title: "الاستئذان",
-                  icon: Icons.exit_to_app,
-                  color: Colors.purple,
+                    _settingCard(
+                      title: "تغيير المدرسة",
+                      icon: Icons.school_outlined,
+                      color: Colors.indigo,
+                      onTap: () async {
 
-                  onTap: () async {
+                        final prefs =
+                            await SharedPreferences.getInstance();
+                        if (!mounted) return;
 
-                    final prefs =
-                        await SharedPreferences.getInstance();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SchoolSelectorScreen(
+                              showBackButton: true,
+                            ),
+                          ),
+);
 
-                    int teacherId =
-                        prefs.getInt('teacher_id') ?? 0;
+                      },
+                    ),
+                  const SizedBox(height: 15),
 
+                  if (isTeacher) ...[
+                      _settingCard(
+                        title: "الاستئذان",
+                        icon: Icons.exit_to_app,
+                        color: Colors.purple,
+                        onTap: () async {
 
-                    int schoolId =
-                        prefs.getInt('school_id') ?? 0;
+                          final prefs =
+                              await SharedPreferences.getInstance();
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
+                          int teacherId =
+                              prefs.getInt('teacher_id') ?? 0;
 
-                        builder: (_) =>
-                            PermissionRequestScreen(
+                          int schoolId =
+                              prefs.getInt('school_id') ?? 0;
 
-                          teacherId: teacherId,
-
-                          schoolId: schoolId,
-
-                        ),
-
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PermissionRequestScreen(
+                                teacherId: teacherId,
+                                schoolId: schoolId,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
 
-                  },
-                ),
-
-                const SizedBox(height: 15),
-
+                      const SizedBox(height: 15),
+                    ],
 
                   _settingCard(
                     title: "تواصل معنا",
@@ -163,6 +222,17 @@ class SchoolSettingsScreen extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 15),
+
+                  _settingCard(
+                      title: "تقييم التطبيق",
+                      icon: Icons.star_rate_rounded,
+                      color: const Color(0xFF084A73),
+                      onTap: () async {
+                        await rateApp();
+                      },
+                    ),
+
+                    const SizedBox(height: 15),
 
                   _settingCard(
                     title: "حذف الحساب",
@@ -252,6 +322,21 @@ class SchoolSettingsScreen extends StatelessWidget {
 
   Future<void> openWhatsApp(BuildContext context) async {
 
+    final prefs = await SharedPreferences.getInstance();
+
+    final roles =
+        prefs.getStringList('roles') ?? [];
+
+    final schoolWhatsapp =
+        prefs.getString('support_whatsapp') ?? '';
+
+    String whatsappNumber = "96891365580";
+
+    if (!roles.contains('admin') &&
+        schoolWhatsapp.isNotEmpty) {
+      whatsappNumber = schoolWhatsapp;
+    }
+
   Flushbar(
     message: "سيتم تحويلك إلى واتساب للتواصل معنا",
     duration: const Duration(seconds: 2),
@@ -263,7 +348,9 @@ class SchoolSettingsScreen extends StatelessWidget {
 
   String message = Uri.encodeComponent("السلام عليكم، أريد الاستفسار");
 
-  final Uri url = Uri.parse("whatsapp://send?phone=96891365580&text=$message");
+  final Uri url = Uri.parse(
+  "whatsapp://send?phone=$whatsappNumber&text=$message"
+  );
 
   try {
     await launchUrl(url);

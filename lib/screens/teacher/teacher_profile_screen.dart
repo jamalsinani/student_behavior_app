@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/teacher_home_service.dart';
 import '../../core/app_colors.dart';
+import '../../services/profile_update_service.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 class TeacherProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -50,6 +52,138 @@ class _TeacherProfileScreenState
     }
   }
 
+  void _showEditDialog({
+  required String title,
+  required String currentValue,
+}) {
+
+  final controller =
+      TextEditingController(text: currentValue);
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(20),
+        ),
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            if (title == "رقم الهاتف")
+              Container(
+                padding:
+                    const EdgeInsets.all(10),
+                margin:
+                    const EdgeInsets.only(
+                        bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.orange
+                      .withOpacity(0.1),
+                  borderRadius:
+                      BorderRadius.circular(
+                          12),
+                ),
+                child: const Text(
+                  "رقم الهاتف هو رقم تسجيل الدخول للتطبيق، بعد الحفظ استخدم الرقم الجديد للدخول.",
+                  style: TextStyle(
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                border:
+                    OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(
+                          12),
+                ),
+                hintText:
+                    "أدخل القيمة الجديدة",
+              ),
+            ),
+          ],
+        ),
+        actions: [
+
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("إلغاء"),
+          ),
+
+          ElevatedButton(
+                onPressed: () async {
+
+                  final newValue =
+                    controller.text.trim();
+
+                if (newValue.isEmpty) {
+                  return;
+                }
+
+                final result =
+                    await ProfileUpdateService.updateField(
+                  teacherPhone:
+                      profileData!['phone'].toString(),
+                  schoolId:
+                      widget.userData!['school_id']
+                          .toString(),
+                  field: title == "رقم الهاتف"
+                      ? "phone"
+                      : "email",
+                  value: newValue,
+                );
+
+                if (result['status'] == true) {
+
+                  setState(() {
+
+                    if (title == "رقم الهاتف") {
+                      profileData!['phone'] = newValue;
+                    } else {
+                      profileData!['email'] = newValue;
+                    }
+
+                  });
+
+                  Navigator.pop(context);
+
+                  Flushbar(
+                    message: "تم حفظ التغيير بنجاح",
+                    duration: const Duration(seconds: 3),
+                    flushbarPosition: FlushbarPosition.TOP,
+                    backgroundColor: Colors.green,
+                  ).show(context);
+
+                } else {
+
+                  Navigator.pop(context);
+
+                    Flushbar(
+                    message: result['message'] ??
+                        "تعذر حفظ التغيير",
+                    duration: const Duration(seconds: 3),
+                    flushbarPosition: FlushbarPosition.TOP,
+                    backgroundColor: Colors.red,
+                  ).show(context);
+
+                }
+             },
+            child: const Text("حفظ"),
+          ),
+        ],
+      );
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
 
@@ -202,24 +336,17 @@ class _TeacherProfileScreenState
 
     const SizedBox(height: 18),
 
-    _animatedItem(
-      index: 1,
-      child: _buildInfoCard(
-        icon: Icons.phone,
-        title: "رقم الهاتف",
-        value: profileData!['phone'],
-      ),
+    _buildInfoCard(
+      icon: Icons.phone,
+      title: "رقم الهاتف",
+      value: profileData?['phone'] ?? "-",
     ),
 
-    _animatedItem(
-      index: 2,
-      child: _buildInfoCard(
-        icon: Icons.email,
-        title: "البريد الإلكتروني",
-        value: profileData!['email'],
-      ),
+    _buildInfoCard(
+      icon: Icons.email,
+      title: "البريد الإلكتروني",
+      value: profileData?['email'] ?? "-",
     ),
-
     _animatedItem(
       index: 3,
       child: _buildInfoCard(
@@ -328,9 +455,11 @@ class _TeacherProfileScreenState
   }
 
   Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String value,
+  required IconData icon,
+  required String title,
+  required String value,
+  bool isEditable = false,
+  VoidCallback? onEdit,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
@@ -345,44 +474,103 @@ class _TeacherProfileScreenState
           )
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
 
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.teacherPrimary
-                  .withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: AppColors.teacherPrimary,
-            ),
-          ),
-
-          const SizedBox(width: 18),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+          if (isEditable)
+            Row(
               children: [
-                Text(
-                  title,
-                  style:
-                      const TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+
+                const Spacer(),
+
+                InkWell(
+                  onTap: onEdit,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.teacherPrimary
+                          .withOpacity(0.08),
+                      borderRadius:
+                          BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+
+                        Icon(
+                          Icons.edit,
+                          size: 15,
+                          color: AppColors.teacherPrimary,
+                        ),
+
+                        SizedBox(width: 4),
+
+                        Text(
+                          "تغيير",
+                          style: TextStyle(
+                            color: AppColors.teacherPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-          )
+
+          if (isEditable)
+            const SizedBox(height: 10),
+
+          Row(
+            children: [
+
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.teacherPrimary
+                      .withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.teacherPrimary,
+                ),
+              ),
+
+              const SizedBox(width: 18),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
         ],
       ),
     );

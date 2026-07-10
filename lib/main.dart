@@ -9,6 +9,9 @@ import 'screens/school_home_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/school_selector_screen.dart';
+
 Future<void> initNotifications() async {
   try {
     if (kIsWeb) return;
@@ -86,13 +89,34 @@ class StudentBehaviorApp extends StatefulWidget {
 
 class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
 
-  @override
+  Widget? startScreen;
+
+ @override
   void initState() {
     super.initState();
 
-    // تشغيل الإشعارات بعد تشغيل التطبيق
     initNotifications();
+
+    loadStartScreen();
   }
+
+  Future<void> loadStartScreen() async {
+
+  final prefs = await SharedPreferences.getInstance();
+  
+  final schoolId = prefs.getInt('school_id');
+  print('SAVED SCHOOL ID = $schoolId');
+  
+  setState(() {
+
+    if (schoolId != null) {
+      startScreen = const SchoolHomeScreen();
+    } else {
+      startScreen = const SchoolSelectorScreen();
+    }
+
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +130,12 @@ class _StudentBehaviorAppState extends State<StudentBehaviorApp> {
           child: child!,
         );
       },
-      home: const SchoolHomeScreen(),
+      home: startScreen ??
+    const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    ),
     );
   }
 }

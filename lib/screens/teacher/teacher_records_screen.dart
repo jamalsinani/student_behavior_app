@@ -259,7 +259,11 @@ class _TeacherRecordsScreenState
           color = Colors.purple;
           break;
 
-
+        // 🔴 غياب
+        case 'absence':
+        color = Colors.red;
+        break;
+        
         // ⚪ غير معروف
         default:
           color = Colors.grey;
@@ -367,21 +371,32 @@ class _TeacherRecordsScreenState
           case 'grade':
             color = Colors.blue;
             break;
+
+          case 'absence':
+          color = Colors.red;
+          break;
+          
           default:
             color = Colors.grey;
         }
 
         return _recordCard(
-          id: int.tryParse(item['id'].toString()) ?? 0,
-          type: item['type'].toString(),
-          title: item['title'].toString(),
-          subtitle: item['description'].toString(),
-          studentName: item['student_name'].toString(),
-          color: color,
-        );
-      },
-    );
-  }
+        id: int.tryParse(item['id'].toString()) ?? 0,
+        type: item['type'].toString(),
+        title: item['title'].toString(),
+        subtitle: item['description'].toString(),
+        studentName: item['student_name'].toString(),
+        color: color,
+
+        parentSeen:
+            item['parent_seen'].toString() == "1",
+
+        parentSeenAt:
+            item['parent_seen_at']?.toString(),
+      );
+            },
+          );
+        }
 
   Widget _recordCard({
     required int id,
@@ -390,6 +405,8 @@ class _TeacherRecordsScreenState
     required String subtitle,
     required String studentName,
     required Color color,
+    required bool parentSeen,
+    required String? parentSeenAt,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
@@ -428,6 +445,44 @@ class _TeacherRecordsScreenState
                     color: Colors.white70,
                   ),
                 ),
+                const SizedBox(height: 10),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: parentSeen
+                        ? Colors.green.withOpacity(0.50)
+                        : Colors.red.withOpacity(0.50),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    parentSeen
+                        ? "🟢 اطلع ولي الأمر"
+                        : "⏳ لم يطلع ولي الأمر بعد",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                if (parentSeen &&
+                    parentSeenAt != null &&
+                    parentSeenAt!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      "وقت الاطلاع: $parentSeenAt",
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

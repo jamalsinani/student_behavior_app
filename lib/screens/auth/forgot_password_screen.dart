@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:another_flushbar/flushbar.dart';
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
+import 'login_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -12,86 +13,225 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   bool isLoading = false;
 
+  String selectedCountryCode = '968';
+
+  final List<Map<String, String>> countries = [
+    {'name': 'عُمان', 'code': '968'},
+    {'name': 'السعودية', 'code': '966'},
+    {'name': 'الإمارات', 'code': '971'},
+    {'name': 'قطر', 'code': '974'},
+    {'name': 'البحرين', 'code': '973'},
+    {'name': 'الكويت', 'code': '965'},
+    {'name': 'مصر', 'code': '20'},
+    {'name': 'الأردن', 'code': '962'},
+    {'name': 'العراق', 'code': '964'},
+    {'name': 'سوريا', 'code': '963'},
+  ];
+
+
   Future<void> sendRequest() async {
 
-    if (phoneController.text.isEmpty) {
-    
-    if (phoneController.text.trim().length != 8) {
+  if (emailController.text.trim().isEmpty) {
 
-      Flushbar(
-        message: "يرجى إدخال رقم الهاتف بشكل صحيح",
-        duration: const Duration(seconds: 3),
-        backgroundColor: Colors.red,
-        margin: const EdgeInsets.all(12),
-        borderRadius: BorderRadius.circular(12),
-      ).show(context);
+    Flushbar(
+      message: "يرجى إدخال البريد الإلكتروني",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.red,
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+    ).show(context);
 
-      return;
-    }
-
-      Flushbar(
-  message: "يرجى إدخال رقم الهاتف",
-  duration: const Duration(seconds: 3),
-  backgroundColor: Colors.red,
-  margin: const EdgeInsets.all(12),
-  borderRadius: BorderRadius.circular(12),
-  ).show(context);
-
-      return;
-    }
-
-    setState(() => isLoading = true);
-
-    try {
-
-      final result = await AuthService.forgotPassword(
-        phone: '968${phoneController.text.trim()}',
-      );
-
-      setState(() => isLoading = false);
-
-        String message = result["message"] ?? "تم إرسال الطلب بنجاح";
-
-        Color flushColor = Colors.green;
-        IconData icon = Icons.check_circle;
-
-        /// إذا كان الطلب موجود مسبقاً
-        if (message.contains("قيد") || message.contains("مسبق")) {
-          message = "تم إرسال الطلب مسبقاً وهو قيد المراجعة";
-          flushColor = Colors.orange;
-          icon = Icons.info;
-        }
-
-        await Flushbar(
-          message: message,
-          duration: const Duration(seconds: 3),
-          flushbarPosition: FlushbarPosition.TOP,
-          backgroundColor: flushColor,
-          icon: Icon(icon, color: Colors.white),
-          margin: const EdgeInsets.all(12),
-          borderRadius: BorderRadius.circular(12),
-        ).show(context);
-
-        Navigator.pop(context);
-
-    } catch (e) {
-
-      setState(() => isLoading = false);
-
-      Flushbar(
-        message: "حدث خطأ أثناء إرسال الطلب",
-        duration: const Duration(seconds: 3),
-        flushbarPosition: FlushbarPosition.TOP,
-        backgroundColor: Colors.red,
-        margin: const EdgeInsets.all(12),
-        borderRadius: BorderRadius.circular(12),
-      ).show(context);
-    }
+    return;
   }
 
+  if (phoneController.text.trim().length < 7) {
+
+    Flushbar(
+      message: "يرجى إدخال رقم الهاتف بشكل صحيح",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.red,
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+    ).show(context);
+
+    return;
+  }
+
+  setState(() => isLoading = true);
+
+  try {
+
+  final result = await AuthService.checkEmailAndPhone(
+    email: emailController.text.trim(),
+    phone: '$selectedCountryCode${phoneController.text.trim()}',
+  );
+
+  setState(() => isLoading = false);
+
+  if (result['status'] == true) {
+
+    showResetPasswordDialog();
+
+  } else {
+
+    Flushbar(
+      message: "البريد الإلكتروني أو رقم الهاتف غير صحيح",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.red,
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+    ).show(context);
+
+  }
+
+} catch (e) {
+
+  setState(() => isLoading = false);
+
+  Flushbar(
+    message: "البريد الإلكتروني أو رقم الهاتف غير صحيح",
+    duration: const Duration(seconds: 3),
+    backgroundColor: Colors.red,
+    margin: const EdgeInsets.all(12),
+    borderRadius: BorderRadius.circular(12),
+  ).show(context);
+}
+}
+
+  void showResetPasswordDialog() {
+
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+
+      return AlertDialog(
+
+        title: const Text(
+          "تغيير كلمة المرور",
+          textAlign: TextAlign.center,
+        ),
+
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "كلمة المرور الجديدة",
+                prefixIcon: Icon(Icons.lock),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            TextField(
+              controller: confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "تأكيد كلمة المرور",
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+            ),
+
+          ],
+        ),
+
+        actions: [
+
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("إلغاء"),
+          ),
+
+          ElevatedButton(
+            onPressed: () async {
+
+              if (passwordController.text.isEmpty ||
+                  confirmPasswordController.text.isEmpty) {
+
+                Flushbar(
+                  message: "يرجى إدخال جميع البيانات",
+                  duration: const Duration(seconds: 3),
+                  backgroundColor: Colors.red,
+                  margin: const EdgeInsets.all(12),
+                  borderRadius: BorderRadius.circular(12),
+                ).show(context);
+
+                return;
+              }
+
+              if (passwordController.text !=
+                  confirmPasswordController.text) {
+
+                Flushbar(
+                  message: "كلمتا المرور غير متطابقتين",
+                  duration: const Duration(seconds: 3),
+                  backgroundColor: Colors.red,
+                  margin: const EdgeInsets.all(12),
+                  borderRadius: BorderRadius.circular(12),
+                ).show(context);
+
+                return;
+              }
+
+              try {
+
+                final result =
+                    await AuthService.resetPasswordDirect(
+
+                  email: emailController.text.trim(),
+                  phone: '$selectedCountryCode${phoneController.text.trim()}',
+
+                  password: passwordController.text.trim(),
+
+                  passwordConfirmation:
+                      confirmPasswordController.text.trim(),
+                );
+
+                if (result['status'] == true) {
+
+                  Navigator.of(context, rootNavigator: true).pop();
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoginScreen(),
+                    ),
+                    (route) => false,
+                  );
+                }
+
+              } catch (e) {
+
+                Flushbar(
+                  message: "فشل تغيير كلمة المرور",
+                  duration: const Duration(seconds: 3),
+                  backgroundColor: Colors.red,
+                  margin: const EdgeInsets.all(12),
+                  borderRadius: BorderRadius.circular(12),
+                ).show(context);
+              }
+            },
+            child: const Text("حفظ"),
+          ),
+
+        ],
+      );
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
 
@@ -116,7 +256,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 30),
 
                 const Text(
-                  "أدخل رقم الهاتف المسجل في النظام",
+             "أدخل البريد الإلكتروني ورقم الهاتف المسجلين في النظام",
                   style: TextStyle(
                     color: Colors.grey,
                     fontSize: 15,
@@ -124,36 +264,62 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
 
                 const SizedBox(height: 30),
+                /// 🔑 البريد الإلكتروني
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: "البريد الإلكتروني",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
 
                 /// 📱 رقم الهاتف
                 Row(
                 children: [
 
-                  Container(
-                    height: 60,
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        '+968',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                 Container(
+                      height: 60,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedCountryCode,
+                          isDense: true,
+                          items: countries.map((country) {
+                            return DropdownMenuItem<String>(
+                              value: country['code'],
+                              child: Text(
+                                "+${country['code']}",
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedCountryCode = value!;
+                            });
+                          },
                         ),
                       ),
                     ),
-                  ),
-
                   const SizedBox(width: 10),
 
                   Expanded(
                     child: TextField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
-                      maxLength: 8,
+                      maxLength: 11,
                       decoration: InputDecoration(
                         labelText: "رقم الهاتف",
                         counterText: '',
@@ -229,10 +395,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                       const SizedBox(height: 10),
 
-                      const Text(
-                        "بعد إرسال الطلب  سيتم تنفيذ الإجراءات التالية:",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                    
 
                       const SizedBox(height: 10),
 
@@ -242,7 +405,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              "يتم إرسال الطلب لإدارة المدرسة للمراجعة.",
+                              "أدخل البريد الإلكتروني ورقم الهاتف المسجلين في النظام.",
                             ),
                           ),
                         ],
@@ -256,7 +419,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              "سيتم إنشاء كلمة مرور جديدة للحساب.",
+                              "عند تطابق البيانات سيتم السماح لك بتعيين كلمة مرور جديدة مباشرة.",
                             ),
                           ),
                         ],
@@ -270,15 +433,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              "سيتم إرسال كلمة المرور الجديدة عبر واتساب الرقم المسجل في النظام.",
+                              "بعد حفظ كلمة المرور الجديدة يمكنك تسجيل الدخول فوراً إلى حسابك.",
                             ),
                           ),
                         ],
                       ),
 
-                    ],
-                  ),
-                ),
+                      ],
+                      ),
+                      ),
+
+                      /// 🔙 العودة
 
                 /// 🔙 العودة
                 TextButton(

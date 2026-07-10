@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/parent_service.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 class StudentReportsScreen extends StatefulWidget {
 
@@ -20,6 +21,7 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
   List adminReports = [];
   List teacherReports = [];
   List adminMessages = [];
+  List allItems = [];
 
   bool loading = true;
 
@@ -67,19 +69,38 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
     );
 
     reports = data;
-
+    reports.sort((a, b) {
+    return DateTime.parse(
+      b["created_at"].toString(),
+    ).compareTo(
+      DateTime.parse(
+        a["created_at"].toString(),
+      ),
+    );
+  });
     /// تقسيم التقارير
     adminReports = reports.where((r) =>
     r["source"] == "admin").toList();
 
     teacherReports = reports.where((r) =>
     r["source"] != "admin").toList();
-
+    
     /// جلب رسائل الإدارة
     adminMessages = await ParentService.getParentMessages(
       studentId: widget.student["id"].toString(),
       schoolId: widget.student["school_id"].toString(),
     );
+    
+    adminMessages.sort((a, b) {
+      return DateTime.parse(
+        b["created_at"].toString(),
+      ).compareTo(
+        DateTime.parse(
+          a["created_at"].toString(),
+        ),
+      );
+    });
+
     } catch (e) {
       print(e);
     }
@@ -145,105 +166,191 @@ class _StudentReportsScreenState extends State<StudentReportsScreen> {
     }
   }
 
+  Future<void> markReportSeen(Map report) async {
+
+  if (report["parent_seen"] == 1) {
+    return;
+  }
+
+  final result =
+      await ParentService.markReportSeen(
+    reportId: report["id"].toString(),
+  );
+
+  if (result["status"] == true) {
+
+    setState(() {
+
+      report["parent_seen"] = 1;
+
+      report["parent_seen_at"] =
+          DateTime.now().toString();
+
+    });
+
+    Flushbar(
+      message: "✓ تم تسجيل إطلاعكم على التقرير",
+      duration: const Duration(seconds: 2),
+      flushbarPosition: FlushbarPosition.TOP,
+      backgroundColor: Colors.green,
+      icon: const Icon(
+        Icons.check_circle,
+        color: Colors.white,
+      ),
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+    ).show(context);
+
+  }
+}
+
   Widget buildReportCard(report) {
 
-    final type = report["report_type"] ?? "";
-    final color = getColor(type);
+  final type = report["report_type"] ?? "";
+  final color = getColor(type);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.9),
-            color.withOpacity(0.65),
+  return Stack(
+    children: [
+
+      Container(
+        margin: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withOpacity(0.9),
+              color.withOpacity(0.65),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.4),
-            blurRadius: 16,
-            offset: const Offset(0,6),
-          )
-        ],
-      ),
 
-      child: Row(
-        children: [
+        child: Row(
+          children: [
 
-          Container(
-            width: 55,
-            height: 55,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(14),
+            Container(
+              width: 55,
+              height: 55,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                getIcon(type),
+                color: Colors.white,
+                size: 30,
+              ),
             ),
-            child: Icon(
-              getIcon(type),
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
 
-          const SizedBox(width: 14),
+            const SizedBox(width: 14),
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                Text(
-                  report["report_title"] ?? "",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                if (report["subject_name"] != null)
                   Text(
-                    "المادة: ${report["subject_name"]}",
-                    style: const TextStyle(color: Colors.white70),
+                    report["report_title"] ?? "",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
-                if (report["period_number"] != null)
-                  Text(
-                    "الحصة: ${report["period_number"]}",
-                    style: const TextStyle(color: Colors.white70),
-                  ),
+                  const SizedBox(height: 6),
 
-                if (report["report_value"] != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top:6),
-                    child: Text(
-                      "الدرجة: ${num.parse(report["report_value"].toString()).toInt()}",
+                  if (report["subject_name"] != null)
+                    Text(
+                      "المادة: ${report["subject_name"]}",
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                        color: Colors.white70,
                       ),
                     ),
-                  ),
 
-                if (report["report_text"] != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top:6),
-                    child: Text(
-                      report["report_text"],
-                      style: const TextStyle(color: Colors.white),
+                  if (report["period_number"] != null)
+                    Text(
+                      "الحصة: ${report["period_number"]}",
+                      style: const TextStyle(
+                        color: Colors.white70,
+                      ),
                     ),
-                  ),
+
+                  if (report["report_value"] != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        "الدرجة: ${num.parse(report["report_value"].toString()).toInt()}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                  if (report["report_text"] != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        report["report_text"],
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      Positioned(
+        top: 2,
+        left: 18,
+        child: GestureDetector(
+          onTap: () {
+            markReportSeen(report);
+          },
+          child: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: report["parent_seen"].toString() == "1"
+                  ? Colors.green
+                  : Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 6,
+                ),
               ],
             ),
-          )
-        ],
+            child: Icon(
+              Icons.thumb_up,
+              color: report["parent_seen"].toString() == "1"
+                  ? Colors.white
+                  : Colors.green,
+              size: 20,
+            ),
+          ),
+        ),
       ),
-    );
-  }
+
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {

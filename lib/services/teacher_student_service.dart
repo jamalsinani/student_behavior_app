@@ -167,8 +167,27 @@ static Future<List<dynamic>> getStudentRecords({
     print("RECORDS BODY: ${response.body}");
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    }
+
+  final data = jsonDecode(response.body);
+
+  print("========== STUDENT RECORDS ==========");
+
+  for (var item in data) {
+
+    print(
+      "ID=${item['id']} | "
+      "TYPE=${item['type']} | "
+      "STUDENT=${item['student_name']} | "
+      "TITLE=${item['title']} | "
+      "DATE=${item['date']}"
+    );
+
+  }
+
+  print("========== END RECORDS ==========");
+
+  return data;
+}
 
     return [];
 

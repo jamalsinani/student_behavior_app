@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:another_flushbar/flushbar.dart';
 import '../services/school_message_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SchoolSendTeacherMessageScreen extends StatefulWidget {
   const SchoolSendTeacherMessageScreen({super.key});
@@ -13,7 +14,7 @@ class SchoolSendTeacherMessageScreen extends StatefulWidget {
 class _SchoolSendTeacherMessageScreenState
     extends State<SchoolSendTeacherMessageScreen> {
 
-  int schoolId = 1;
+  int schoolId = 0;
 
   String sendType = "single";
 
@@ -25,11 +26,23 @@ class _SchoolSendTeacherMessageScreenState
   String? selectedTeacherPhone;
 
   final TextEditingController messageController = TextEditingController();
+  bool isSending = false;
+
+  Future<void> loadSchoolId() async {
+
+  final prefs = await SharedPreferences.getInstance();
+
+  schoolId = prefs.getInt('school_id') ?? 0;
+
+  print('CURRENT SCHOOL ID = $schoolId');
+
+  loadSubjects();
+}
 
   @override
   void initState() {
     super.initState();
-    loadSubjects();
+    loadSchoolId();
   }
 
   /// ================= جلب المواد =================
@@ -59,6 +72,40 @@ class _SchoolSendTeacherMessageScreenState
 
   /// ================= إرسال رسالة =================
   void sendMessage() async {
+
+  if (isSending) return;
+
+  /// التحقق من اختيار المعلم
+  if (sendType == "single" && selectedTeacherPhone == null) {
+
+    Flushbar(
+      message: "يرجى اختيار المعلم أولاً",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.orange,
+      flushbarPosition: FlushbarPosition.TOP,
+    ).show(context);
+
+    return;
+  }
+
+  /// التحقق من الرسالة
+  if (messageController.text.trim().isEmpty) {
+
+    Flushbar(
+      message: "اكتب نص الرسالة",
+      duration: const Duration(seconds: 3),
+      backgroundColor: Colors.orange,
+      flushbarPosition: FlushbarPosition.TOP,
+    ).show(context);
+
+    return;
+  }
+
+  setState(() {
+    isSending = true;
+  });
+
+  try {
 
     final res = await SchoolMessageService.sendTeacherMessage(
       schoolId: schoolId,
@@ -96,7 +143,17 @@ class _SchoolSendTeacherMessageScreenState
 
     }
 
+  } finally {
+
+    if (mounted) {
+      setState(() {
+        isSending = false;
+      });
+    }
+
   }
+
+}
 
   @override
   Widget build(BuildContext context) {
@@ -275,16 +332,34 @@ class _SchoolSendTeacherMessageScreenState
                   const SizedBox(height: 20),
 
                   SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: sendMessage,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        backgroundColor: const Color(0xff203a43),
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: isSending ? null : sendMessage,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          backgroundColor: isSending
+                              ? Colors.orange
+                              : const Color(0xff203a43),
+                        ),
+                        child: isSending
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : const Text(
+                                "إرسال الرسالة",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
-                      child: const Text("إرسال الرسالة"),
                     ),
-                  ),
 
                   const SizedBox(height: 30),
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/school_notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SchoolSentNotificationsScreen extends StatefulWidget {
   const SchoolSentNotificationsScreen({super.key});
@@ -15,7 +16,7 @@ class _SchoolSentNotificationsScreenState
   List notifications = [];
   bool isLoading = true;
 
-  int schoolId = 1;
+  int? schoolId;
 
   @override
   void initState() {
@@ -27,8 +28,18 @@ class _SchoolSentNotificationsScreenState
 
     try {
 
+      final prefs = await SharedPreferences.getInstance();
+        schoolId = prefs.getInt('school_id');
+
+        if (schoolId == null) {
+          setState(() {
+            isLoading = false;
+          });
+          return;
+        }
+
       final data =
-          await SchoolNotificationService.fetchSentNotifications(schoolId);
+          await SchoolNotificationService.fetchSentNotifications(schoolId!);
 
       setState(() {
         notifications = data;
@@ -110,69 +121,96 @@ class _SchoolSentNotificationsScreenState
 
           /// ================= القائمة =================
           Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: notifications.length,
-                    itemBuilder: (context,index){
+  child: isLoading
+      ? const Center(
+          child: CircularProgressIndicator(),
+        )
+      : notifications.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
 
-                      final item = notifications[index];
-
-                      String name = "إشعار";
-                      String sub = "";
-
-                      /// رسائل الطلاب
-                      if(item["type"] == "parent"){
-
-                        if(item["send_to"] == "all"){
-
-                          name = "لكل الطلاب";
-                          sub = "رسالة جماعية";
-
-                        }else{
-
-                          name = item["student_name"] ?? "طالب";
-                          sub = "رسالة لطالب";
-
-                        }
-
-                      }
-
-                      /// رسائل المعلمين
-                      if(item["type"] == "teacher"){
-
-                        if(item["send_to"] == "all"){
-
-                          name = "لكل المعلمين";
-                          sub = "رسالة جماعية";
-
-                        }else{
-
-                          name = item["teacher_name"] ?? "معلم";
-                          sub = "رسالة لمعلم";
-
-                        }
-
-                      }
-
-                      return _notificationCard(
-                        name: name,
-                        sub: sub,
-                        message: item["message"] ?? "",
-                        color1: item["type"] == "teacher"
-                            ? const Color(0xff7f00ff)
-                            : const Color(0xff36d1dc),
-                        color2: item["type"] == "teacher"
-                            ? const Color(0xffe100ff)
-                            : const Color(0xff5b86e5),
-                      );
-
-                    },
+                  Icon(
+                    Icons.notifications_off_outlined,
+                    size: 70,
+                    color: Colors.grey,
                   ),
-          )
 
+                  SizedBox(height: 15),
+
+                  Text(
+                    "لا توجد إشعارات مرسلة",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: notifications.length,
+              itemBuilder: (context, index) {
+
+                final item = notifications[index];
+
+                String name = "إشعار";
+                String sub = "";
+
+                /// رسائل الطلاب
+                if (item["type"] == "parent") {
+
+                  if (item["send_to"] == "all") {
+
+                    name = "لكل الطلاب";
+                    sub = "رسالة جماعية";
+
+                  } else {
+
+                    name = item["student_name"] ?? "طالب";
+                    sub = "رسالة لطالب";
+
+                  }
+
+                }
+
+                /// رسائل المعلمين
+                if (item["type"] == "teacher") {
+
+                  if (item["send_to"] == "all") {
+
+                    name = "لكل المعلمين";
+                    sub = "رسالة جماعية";
+
+                  } else {
+
+                    name = item["teacher_name"] ?? "معلم";
+                    sub = "رسالة لمعلم";
+
+                  }
+
+                }
+
+                return _notificationCard(
+                  name: name,
+                  sub: sub,
+                  message: item["message"] ?? "",
+                  color1: item["type"] == "teacher"
+                      ? const Color(0xff7f00ff)
+                      : const Color(0xff36d1dc),
+                  color2: item["type"] == "teacher"
+                      ? const Color(0xffe100ff)
+                      : const Color(0xff5b86e5),
+                );
+
+              },
+            ),
+)
         ],
       ),
     );

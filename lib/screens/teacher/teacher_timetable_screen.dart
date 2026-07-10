@@ -163,6 +163,31 @@ void dispose() {
     }
   }
 
+  int getCurrentSchoolDay() {
+  final weekday = DateTime.now().weekday;
+
+  if (weekday == 7) return 1; // الأحد
+  if (weekday == 1) return 2; // الاثنين
+  if (weekday == 2) return 3; // الثلاثاء
+  if (weekday == 3) return 4; // الأربعاء
+  if (weekday == 4) return 5; // الخميس
+
+  return 0;
+}
+
+  String getOriginalDateFromDay(int schoolDay) {
+  DateTime now = DateTime.now();
+
+  int currentSchoolDay = getCurrentSchoolDay();
+
+  int difference = schoolDay - currentSchoolDay;
+
+  DateTime targetDate =
+      now.add(Duration(days: difference));
+
+  return targetDate.toString().split(" ")[0];
+}
+
   bool isCurrentPeriod(String start, String end) {
     final now = TimeOfDay.now();
     final startParts = start.split(":");
@@ -184,8 +209,11 @@ void dispose() {
     final endMinutes =
         endTime.hour * 60 + endTime.minute;
 
-    return nowMinutes >= startMinutes &&
-        nowMinutes <= endMinutes;
+    final currentDay = getCurrentSchoolDay();
+
+    return currentDay == selectedDay &&
+    nowMinutes >= startMinutes &&
+    nowMinutes <= endMinutes;
   }
 
   @override
@@ -889,7 +917,7 @@ final substituteName = substitute['name'] ?? "";
     targetDay: selectedTargetDay!,
     targetPeriod: selectedTargetPeriod!,
 
-    originalDate: DateTime.now().toString().split(" ")[0],
+    originalDate: getOriginalDateFromDay(dayNumber),
     targetDate: selectedTargetDate!.toString().split(" ")[0],
 
     subjectName: subjectName,

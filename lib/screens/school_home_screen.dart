@@ -25,7 +25,12 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
   int currentAd = 0;
   Timer? _timer;
 
-  String schoolLogo = "assets/images/default_school.png";
+  String schoolLogo = "";
+  
+  String schoolName = "";
+  String googleMapUrl = "";
+
+  int? schoolId;
 
   List<Map<String, String>> ads = [];
 
@@ -37,25 +42,42 @@ class _SchoolHomeScreenState extends State<SchoolHomeScreen> {
 
   Future<void> loadAds() async {
 
+  final prefs = await SharedPreferences.getInstance();
+
+  schoolId = prefs.getInt('school_id');
+
+  if (schoolId == null) {
+    return;
+  }
+
   final url = Uri.parse(
-      "https://abuobaida-edu.com/api/school-home/1");
+      "https://abuobaida-edu.com/api/school-home/$schoolId");
 
   final response = await http.get(url);
 
   if (response.statusCode == 200) {
 
     final data = json.decode(response.body);
+    print(data);
 
     setState(() {
+      schoolName = data["school"]["name"]?.toString() ?? "";
+
+      schoolLogo = data["school"]["logo"]?.toString() ?? "";
+
+      googleMapUrl =
+      data["school"]["google_map_url"]?.toString() ?? "";
+
           // الإعلانات
       ads = List<Map<String, String>>.from(
+        
         data["ads"].map((item) => {
           "image": item["image"].toString(),
           "link": item["link"]?.toString() ?? "",
         }),
       );
       // الاحصائيات
-    
+    print("ADS COUNT = ${ads.length}");
       stats = [
   {"icon": "students", "title": data["school"]["students"].toString(), "subtitle": "طالب"},
   {"icon": "teachers", "title": data["school"]["teachers"].toString(), "subtitle": "معلم"},
@@ -172,13 +194,38 @@ void initState() {
               ),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: AssetImage(schoolLogo),
-                  ),
+                  Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: schoolLogo.isNotEmpty
+                      ? Image.network(
+                          schoolLogo,
+                          fit: BoxFit.contain,
+                        )
+                      : Image.asset(
+                          "assets/images/platform_logo.png",
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 15),
-                  const Text(
-                    "مدرسة الشيخ ابو عبيدة عبدالله بن محمد البلوشي (5-9)",
+                  Text(
+                    schoolName.isEmpty
+                        ? "جاري تحميل بيانات المدرسة..."
+                        : schoolName,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -200,7 +247,18 @@ void initState() {
               // مقاس الاعلان 1200 * 700
             height: 220,
           child: ads.isEmpty
-      ? const Center(child: CircularProgressIndicator())
+          ? Container(
+              height: 220,
+              alignment: Alignment.center,
+              child: const Text(
+                "لا توجد إعلانات حالياً",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            )
       : PageView.builder(
           controller: _adsController,
           itemCount: ads.length * 1000,
@@ -266,47 +324,90 @@ void initState() {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: stats.map((item) {
+
                   return Expanded(
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 65,
-                          width: 65,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xff203a43),
-                                Color(0xff2c5364),
+                    child: GestureDetector(
+
+                      onTap: () async {
+
+                          print("تم الضغط على العنصر");
+
+                          print("icon = ${item["icon"]}");
+
+                          print("googleMapUrl = $googleMapUrl");
+
+                          if (item["icon"] == "location" &&
+                              googleMapUrl.isNotEmpty) {
+
+                            print("سيتم فتح الخريطة");
+
+                            await launchUrl(
+                              Uri.parse(googleMapUrl),
+                              mode: LaunchMode.externalApplication,
+                            );
+
+                          } else {
+
+                            print("لم يتم استيفاء الشرط");
+
+                          }
+
+                        },
+
+                      child: Column(
+                        children: [
+
+                          Container(
+                            height: 65,
+                            width: 65,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xff203a43),
+                                  Color(0xff2c5364),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                )
                               ],
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              )
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              _getStatIcon(item["icon"]!),
-                              color: Colors.white,
-                              size: 28,
+                            child: Center(
+                              child: Icon(
+                                _getStatIcon(item["icon"]!),
+                                color: Colors.white,
+                                size: 28,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(item["title"]!,
+
+                          const SizedBox(height: 8),
+
+                          Text(
+                            item["title"]!,
+                            textAlign: TextAlign.center,
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold)),
-                        Text(item["subtitle"]!,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          Text(
+                            item["subtitle"]!,
                             style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade600)),
-                      ],
+                              fontSize: 11,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+
+                        ],
+                      ),
                     ),
                   );
+
                 }).toList(),
               ),
             ),
@@ -330,8 +431,20 @@ Padding(
 
 const SizedBox(height: 12),
 
-Column(
-  children: List.generate(
+latestNews.isEmpty
+    ? const Padding(
+        padding: EdgeInsets.all(20),
+        child: const Text(
+          "لا توجد أخبار حالياً",
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      )
+    : Column(
+        children: List.generate(
   latestNews.length > 3 ? 3 : latestNews.length,
   (index) {
     final news = latestNews[index];
@@ -394,12 +507,44 @@ Column(
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
-                news["subtitle"] ?? "",
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    Text(
+                      news["subtitle"] ?? "",
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    GestureDetector(
+                      onTap: () {
+
+                        if (news["instagram_url"] != null &&
+                            news["instagram_url"]!.isNotEmpty) {
+
+                          openInstagram(news["instagram_url"]!);
+
+                        }
+
+                      },
+                    child: const Text(
+                      "اقرأ المزيد",
+                      style: TextStyle(
+                        color: Color(0xff203a43),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+
+                ],
               ),
             ],
           ),
@@ -418,9 +563,21 @@ const SizedBox(height: 30),
 _sectionTitle("الداعمون"),
 const SizedBox(height: 15),
 
-SizedBox(
-  height: 130,
-  child: ListView.builder(
+supporters.isEmpty
+    ? const Padding(
+        padding: EdgeInsets.all(20),
+        child: const Text(
+          "لا يوجد داعمون حالياً",
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      )
+    : SizedBox(
+        height: 130,
+        child: ListView.builder(
     scrollDirection: Axis.horizontal,
     padding: const EdgeInsets.symmetric(horizontal: 20),
     itemCount: supporters.length,
@@ -444,17 +601,43 @@ SizedBox(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.grey.shade200,
-              child: supporter["logo"]!.isEmpty
-                  ? const Icon(Icons.business, size: 30)
-                  : Image.network(
-                    supporter["logo"]!,
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                  ),
+           GestureDetector(
+
+              onTap: () {
+
+                if (supporter["logo"]!.isNotEmpty) {
+
+                  showDialog(
+                    context: context,
+                    builder: (_) => Dialog(
+                      backgroundColor: Colors.transparent,
+                      child: InteractiveViewer(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            supporter["logo"]!,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+
+                }
+
+              },
+
+              child: CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: supporter["logo"]!.isNotEmpty
+                    ? NetworkImage(supporter["logo"]!)
+                    : null,
+                child: supporter["logo"]!.isEmpty
+                    ? const Icon(Icons.business, size: 30)
+                    : null,
+              ),
+
             ),
             const SizedBox(height: 10),
             Text(
@@ -652,7 +835,10 @@ const SizedBox(height: 40),
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const LoginScreen(),
+                          builder: (_) => LoginScreen(
+                            schoolName: schoolName,
+                            schoolLogo: schoolLogo,
+                          ),
                         ),
                       );
 
@@ -663,7 +849,10 @@ const SizedBox(height: 40),
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
+                        builder: (_) => LoginScreen(
+                          schoolName: schoolName,
+                          schoolLogo: schoolLogo,
+                        ),
                       ),
                     );
 
@@ -680,7 +869,10 @@ const SizedBox(height: 40),
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LoginScreen(),
+                      builder: (_) => LoginScreen(
+                        schoolName: schoolName,
+                        schoolLogo: schoolLogo,
+                      ),
                     ),
                   );
 

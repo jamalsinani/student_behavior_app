@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:another_flushbar/flushbar.dart';
 import '../../core/app_colors.dart';
 import '../../services/auth_service.dart';
 
@@ -15,6 +16,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isLoading = false;
   bool isAddingRole = false;
 
+  String selectedCountryCode = '968';
+
+  final List<Map<String, String>> countries = [
+    {'name': 'عُمان', 'code': '968'},
+    {'name': 'السعودية', 'code': '966'},
+    {'name': 'الإمارات', 'code': '971'},
+    {'name': 'قطر', 'code': '974'},
+    {'name': 'البحرين', 'code': '973'},
+    {'name': 'الكويت', 'code': '965'},
+    {'name': 'مصر', 'code': '20'},
+    {'name': 'الأردن', 'code': '962'},
+    {'name': 'العراق', 'code': '964'},
+    {'name': 'سوريا', 'code': '963'},
+  ];
+
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -22,7 +38,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String accountType = '';
   String fullName = '';
   String accountTypeValue = ''; // teacher / parent
-  
+  String adminEmail = '';
+
     List students = []; // 👈 قائمة أبناء ولي الأمر
     
   /// ==============================
@@ -37,7 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   try {
 
     final result = await AuthService.checkPhone(
-      '968${phoneController.text.trim()}',
+      '$selectedCountryCode${phoneController.text.trim()}'
     );
 
     print(result);
@@ -125,6 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (result['status'] == true && result['existing_user'] == false) {
 
       fullName = result['name'];
+      adminEmail = result['email'] ?? '';
       students = result['students'] ?? [];
 
       List roles = result['roles'] ?? [];
@@ -132,9 +150,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (roles.length == 1) {
 
         accountTypeValue = roles.first;
-        accountType =
-            accountTypeValue == 'teacher' ? "معلم" : "ولي أمر";
+       if (accountTypeValue == 'teacher') {
+          accountType = "معلم";
+        } else if (accountTypeValue == 'parent') {
+          accountType = "ولي أمر";
+        } else if (accountTypeValue == 'admin') {
+          accountType = "إدارة المدرسة";
+        }
 
+        if (accountTypeValue == 'admin' && adminEmail.isNotEmpty) {
+          emailController.text = adminEmail;
+        }
         setState(() {
           step = 2;
         });
@@ -205,6 +231,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+   Flushbar(
+      message: "لم يتم العثور على بيانات بهذا الرقم، تأكد من اختيار الدولة الصحيحة",
+      duration: const Duration(seconds: 3),
+      flushbarPosition: FlushbarPosition.TOP,
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(12),
+    ).show(context);
+
+    return;
+
+
   } catch (e) {
 
     setState(() => isLoading = false);
@@ -227,25 +264,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
 
+      print("========== REGISTER ==========");
+      print("NAME: $fullName");
+      print("PHONE: $selectedCountryCode${phoneController.text.trim()}");
+      print("EMAIL: ${emailController.text.trim()}");
+      print("TYPE: $accountTypeValue");
+
       final result = await AuthService.registerUser(
         
         name: fullName,
-        phone: '968${phoneController.text.trim()}',
+        phone: '$selectedCountryCode${phoneController.text.trim()}',
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
         type: accountTypeValue,
       );
       
       print("REGISTER RESULT: $result");
-
+      print(result);
+      
       setState(() => isLoading = false);
 
       if (result['status'] == true) {
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("تم إنشاء الحساب بنجاح")),
         );
 
         Navigator.pop(context);
+
+      } else {
+
+        String errorMessage =
+            result['error'] ??
+            result['message'] ??
+            "فشل إنشاء الحساب";
+
+        if (errorMessage.toLowerCase().contains('email has already been taken')) {
+          errorMessage = 'البريد الإلكتروني مستخدم مسبقاً';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+          ),
+        );
       }
 
     } catch (e) {
@@ -266,7 +328,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   try {
 
     final result = await AuthService.addRole(
-      phone: '968${phoneController.text.trim()}',
+      phone: '$selectedCountryCode${phoneController.text.trim()}',
       password: passwordController.text.trim(),
       role: accountTypeValue,
     );
@@ -321,27 +383,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 /// ==========================
                 if (step == 1) ...[
                   const SizedBox(height: 20),
+                   const Text(
+                    'أدخل رقم الهاتف المسجل في النظام',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
 
                   Row(
                   children: [
 
                     Container(
-                      height: 60,
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '+968',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                        height: 60,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedCountryCode,
+                            items: countries.map((country) {
+                              return DropdownMenuItem<String>(
+                                value: country['code'],
+                                child: Text(
+                                  "+${country['code']}",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedCountryCode = value!;
+                              });
+                            },
                           ),
                         ),
                       ),
-                    ),
 
                     const SizedBox(width: 10),
 
@@ -349,7 +435,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: TextField(
                         controller: phoneController,
                         keyboardType: TextInputType.phone,
-                        maxLength: 8,
+                        maxLength: 11,
                         decoration: InputDecoration(
                           labelText: 'رقم الهاتف',
                           counterText: '',
@@ -407,9 +493,11 @@ if (step == 2) ...[
             color: AppColors.primary.withOpacity(0.1),
           ),
           child: Icon(
-            accountTypeValue == 'teacher'
-                ? Icons.school
-                : Icons.family_restroom,
+          accountTypeValue == 'teacher'
+              ? Icons.school
+              : accountTypeValue == 'admin'
+                  ? Icons.admin_panel_settings
+                  : Icons.family_restroom,
             size: 35,
             color: AppColors.primary,
           ),
@@ -419,9 +507,11 @@ if (step == 2) ...[
 
         /// 🔹 التعريف
         Text(
-          accountTypeValue == 'teacher'
-              ? "المعلم:"
-              : "ولي الأمر:",
+        accountTypeValue == 'teacher'
+            ? "المعلم:"
+            : accountTypeValue == 'admin'
+                ? "إدارة المدرسة:"
+                : "ولي الأمر:",
           style: TextStyle(
             fontSize: 15,
             color: Colors.grey.shade600,
@@ -529,10 +619,35 @@ if (step == 2) ...[
   height: 55,
   child: ElevatedButton(
     onPressed: () {
+
+      if (accountTypeValue == 'admin') {
+
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text("حساب إدارة المدرسة"),
+            content: const Text(
+              "تم إنشاء حسابك مسبقاً من خلال المنصة.\n\nيرجى العودة إلى شاشة تسجيل الدخول واستخدام رقم الهاتف وكلمة المرور الخاصة بك.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // إغلاق الرسالة
+                  Navigator.pop(context); // العودة لتسجيل الدخول
+                },
+                child: const Text("العودة لتسجيل الدخول"),
+              ),
+            ],
+          ),
+        );
+
+        return;
+      }
+
       if (isAddingRole) {
-        setState(() => step = 4); // إضافة دور
+        setState(() => step = 4);
       } else {
-        setState(() => step = 3); // تسجيل جديد
+        setState(() => step = 3);
       }
     },
     child: const Text("متابعة"),
@@ -545,8 +660,9 @@ if (step == 2) ...[
 if (step == 3) ...[
   const SizedBox(height: 20),
 
-  TextField(
+    TextField(
     controller: emailController,
+    readOnly: accountTypeValue == 'admin',
     decoration: InputDecoration(
       labelText: 'البريد الإلكتروني',
       prefixIcon: const Icon(Icons.email),
